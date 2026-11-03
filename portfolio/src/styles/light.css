@@ -1,0 +1,1188 @@
+/* light.css — the light theme, "Backwaters".
+   Light mode is the SAME DOM as the reader layout (no `.table` class on <html>),
+   restyled as a scrolling page of frosted glass panels over a looping painted
+   video. Everything is scoped to :root[data-theme='light'], so dark is untouched.
+
+   Design system: landing-page-design skill, Part B.
+     type    Geist + Geist Mono, named styles from the B1 table (defined below, light only)
+     space   2 4 8 12 16 24 32 40 48 64 80 96 px
+     radius  Tailwind steps; nested radius = outer minus gap (when result > 2)
+     motion  cubic-bezier(0.22, 1, 0.36, 1), 500 ms moves, 300 ms colour; transform and opacity only
+     colour  flat surfaces; gradients only on the hero text, the hero glow and the scrim */
+
+:root[data-theme='light'] {
+  /* ink, from the painting's deep blue */
+  --ink: #14212b;
+  --ink-2: #3e4c57;
+  --ink-3: #4f5b64;
+  /* accents */
+  --accent: #c8402f;
+  --accent-hover: #b23626;
+  --teal: #1f6f78;
+  --teal-hover: #17565d;
+  /* glass */
+  --glass: rgba(255, 251, 242, 0.78);
+  --glass-strong: rgba(255, 251, 242, 0.82);
+  --glass-nav: rgba(255, 251, 242, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-shadow: 0 8px 32px rgba(20, 33, 43, 0.1);
+  --chip-bg: rgba(255, 255, 255, 0.62);
+  --chip-line: rgba(20, 33, 43, 0.14);
+
+  /* layout */
+  --gutter: 24px;
+  --sg: 96px; /* gap between sections: Spacing-900 on desktop, Spacing-700 on mobile */
+  --content-w: 1120px;
+
+  /* legacy tokens read by the shared reader rules in base.css */
+  --bg-0: #eaf3fa;
+  --bg-1: var(--glass);
+  --bg-2: var(--chip-bg);
+  --bg-3: rgba(255, 255, 255, 0.85);
+  --bg-4: var(--chip-line);
+  --fg: var(--ink);
+  --fg-2: var(--ink-2);
+  --fg-3: var(--ink-3);
+  --neon-cyan: var(--teal);
+
+  color-scheme: light;
+}
+@media (max-width: 767px) {
+  :root[data-theme='light'] {
+    --sg: 64px;
+  }
+}
+@media (max-width: 389px) {
+  :root[data-theme='light'] {
+    --gutter: 16px;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Named text styles (the skill's B1 table). Same names as the shared    */
+/* ones, redefined for light so a style means the same thing everywhere. */
+/* ------------------------------------------------------------------ */
+
+:root[data-theme='light'] .heading-1 { font-size: 60px; line-height: 60px; font-weight: 600; letter-spacing: -0.02em; }
+:root[data-theme='light'] .heading-2 { font-size: 48px; line-height: 48px; font-weight: 600; letter-spacing: -0.02em; }
+:root[data-theme='light'] .heading-3 { font-size: 36px; line-height: 40px; font-weight: 600; letter-spacing: -0.02em; }
+:root[data-theme='light'] .heading-4 { font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.01em; }
+:root[data-theme='light'] .heading-5 { font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -0.01em; }
+:root[data-theme='light'] .heading-6 { font-size: 20px; line-height: 28px; font-weight: 600; }
+:root[data-theme='light'] .title-1 { font-size: 20px; line-height: 28px; font-weight: 500; letter-spacing: 0; }
+:root[data-theme='light'] .title-2 { font-size: 18px; line-height: 28px; font-weight: 500; letter-spacing: 0; }
+:root[data-theme='light'] .title-3 { font-size: 16px; line-height: 24px; font-weight: 500; letter-spacing: 0; }
+:root[data-theme='light'] .title-4 { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0; }
+:root[data-theme='light'] .body-3 { font-size: 16px; line-height: 24px; font-weight: 400; }
+:root[data-theme='light'] .body-6 { font-size: 14px; line-height: 20px; font-weight: 400; }
+:root[data-theme='light'] .button-md { font-size: 16px; line-height: 24px; font-weight: 600; }
+:root[data-theme='light'] .button-sm { font-size: 14px; line-height: 20px; font-weight: 600; }
+:root[data-theme='light'] .caption-1 { font-size: 14px; line-height: 20px; font-weight: 500; }
+:root[data-theme='light'] .caption-2 { font-size: 14px; line-height: 20px; font-weight: 400; }
+:root[data-theme='light'] .caption-3 { font-size: 12px; line-height: 16px; font-weight: 600; }
+:root[data-theme='light'] .caption-4 { font-size: 12px; line-height: 16px; font-weight: 500; }
+
+@media (max-width: 767px) {
+  :root[data-theme='light'] .hero-title { font-size: 48px; line-height: 48px; }
+  :root[data-theme='light'] .tagline { font-size: 36px; line-height: 40px; }
+}
+@media (max-width: 389px) {
+  :root[data-theme='light'] .hero-title { font-size: 36px; line-height: 40px; }
+  :root[data-theme='light'] .tagline { font-size: 30px; line-height: 36px; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Page                                                                */
+/* ------------------------------------------------------------------ */
+
+:root[data-theme='light'] {
+  background: #eaf3fa;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme='light'] {
+    scroll-behavior: smooth;
+  }
+}
+:root[data-theme='light'] body {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: transparent; /* the fixed video shows through */
+  color: var(--ink);
+  overflow-x: hidden;
+}
+:root[data-theme='light'] a {
+  color: var(--teal);
+}
+:root[data-theme='light'] a:hover {
+  color: var(--teal-hover);
+}
+:root[data-theme='light'] :focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+:root[data-theme='light'] #app {
+  display: block;
+  padding: 0;
+  overflow-x: clip; /* the hero glow and the parallax layer never widen the page */
+}
+/* the table wrappers are plain blocks here */
+:root[data-theme='light'] #viewport,
+:root[data-theme='light'] #cabinet,
+:root[data-theme='light'] #stage {
+  display: block;
+  position: static;
+  width: auto;
+  height: auto;
+  transform: none;
+  perspective: none;
+}
+
+/* Things that exist for the dark theme only */
+:root[data-theme='light'] #panel-left,
+:root[data-theme='light'] #to-table,
+:root[data-theme='light'] #theme-reader,
+:root[data-theme='light'] #small-banner {
+  display: none !important;
+}
+
+/* skip link */
+:root[data-theme='light'] .skip {
+  z-index: 1000;
+  background: var(--ink);
+  color: #fff;
+}
+
+/* ------------------------------------------------------------------ */
+/* Background: painted video, poster, scrim, motes                     */
+/* ------------------------------------------------------------------ */
+
+/* The poster is the first thing painted (no JS needed); the <video> fades in over it. */
+:root[data-theme='light'] #lbg {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  overflow: hidden;
+  background-color: #eaf3fa;
+  background-image: url('/light/poster.jpg');
+  background-image: image-set(url('/light/poster.webp') type('image/webp'), url('/light/poster.jpg') type('image/jpeg'));
+  background-position: 42% 60%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  transform: scale(1.04); /* parallax never shows an edge; light.ts moves it +-10 px on desktop */
+  will-change: transform;
+}
+:root[data-theme='light'] #lbg video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 42% 60%;
+  opacity: 0;
+  transition: opacity 700ms var(--ease);
+  pointer-events: none;
+}
+:root[data-theme='light'] #lbg video.on {
+  opacity: 1;
+}
+:root[data-theme='light'] #lscrim {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+:root[data-theme='light'] #lmotes {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Glass                                                               */
+/* ------------------------------------------------------------------ */
+
+:root[data-theme='light'] .glass,
+:root[data-theme='light'] #tagline-text,
+:root[data-theme='light'] .card,
+:root[data-theme='light'] .sling,
+:root[data-theme='light'] #skills,
+:root[data-theme='light'] #languages,
+:root[data-theme='light'] #contact,
+:root[data-theme='light'] #lfooter,
+:root[data-theme='light'] #more-projects li,
+:root[data-theme='light'] .pill,
+:root[data-theme='light'] #projects > h2,
+:root[data-theme='light'] #more-projects h3 {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  backdrop-filter: blur(14px) saturate(1.15);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root[data-theme='light'] .glass,
+  :root[data-theme='light'] #tagline-text,
+  :root[data-theme='light'] .card,
+  :root[data-theme='light'] .sling,
+  :root[data-theme='light'] #skills,
+  :root[data-theme='light'] #languages,
+  :root[data-theme='light'] #contact,
+  :root[data-theme='light'] #lfooter,
+  :root[data-theme='light'] #more-projects li,
+  :root[data-theme='light'] .pill,
+  :root[data-theme='light'] #projects > h2,
+  :root[data-theme='light'] #more-projects h3,
+  :root[data-theme='light'] #lnav-bar,
+  :root[data-theme='light'] .hero-chip,
+  :root[data-theme='light'] .hero-scroll {
+    background: rgba(255, 251, 242, 0.94);
+  }
+  :root[data-theme='light'] #lmenu {
+    background: rgba(255, 251, 242, 0.98);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Buttons                                                             */
+/* ------------------------------------------------------------------ */
+
+:root[data-theme='light'] .btn {
+  gap: var(--sp-8);
+  min-height: 40px;
+  padding: var(--sp-8) var(--sp-12);
+  border-radius: var(--r-8);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  transition:
+    background-color var(--t-color) var(--ease),
+    border-color var(--t-color) var(--ease),
+    color var(--t-color) var(--ease),
+    transform var(--t-color) var(--ease);
+}
+:root[data-theme='light'] .btn:hover {
+  transform: translateY(-1px);
+}
+:root[data-theme='light'] .btn:active {
+  transform: scale(0.98);
+}
+:root[data-theme='light'] .btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+:root[data-theme='light'] .btn-primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: #fff;
+}
+:root[data-theme='light'] .btn-ghost {
+  background: rgba(255, 251, 242, 0.7);
+  border-color: rgba(20, 33, 43, 0.2);
+  color: var(--ink);
+}
+:root[data-theme='light'] .btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(20, 33, 43, 0.35);
+  color: var(--ink);
+}
+:root[data-theme='light'] .btn-ghost .ic {
+  color: var(--ink-2);
+}
+
+/* ------------------------------------------------------------------ */
+/* Floating nav                                                        */
+/* ------------------------------------------------------------------ */
+
+:root[data-theme='light'] #lnav {
+  position: fixed;
+  top: var(--sp-16);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--sp-16);
+  pointer-events: none;
+}
+:root[data-theme='light'] #lnav-bar {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-16);
+  padding: var(--sp-8) var(--sp-8) var(--sp-8) var(--sp-24);
+  background: var(--glass-nav);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-full);
+  box-shadow: var(--glass-shadow);
+}
+:root[data-theme='light'] .lnav-brand {
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: var(--sp-8) 0;
+}
+:root[data-theme='light'] .lnav-brand:hover {
+  color: var(--ink);
+}
+:root[data-theme='light'] .lnav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+:root[data-theme='light'] .lnav-links a {
+  position: relative;
+  display: block;
+  padding: var(--sp-8) var(--sp-12);
+  border-radius: var(--r-full);
+  color: var(--ink-2);
+  text-decoration: none;
+  transition:
+    background-color var(--t-color) var(--ease),
+    color var(--t-color) var(--ease);
+}
+:root[data-theme='light'] .lnav-links a:hover {
+  background: rgba(20, 33, 43, 0.07);
+  color: var(--ink);
+}
+:root[data-theme='light'] .lnav-links a[aria-current='location'] {
+  background: rgba(31, 111, 120, 0.14);
+  color: #17565d;
+}
+:root[data-theme='light'] .lnav-toggle {
+  border-radius: var(--r-full);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* menu button + full height panel (mobile) */
+:root[data-theme='light'] .lnav-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color var(--t-color) var(--ease);
+}
+:root[data-theme='light'] .lnav-menu-btn:hover {
+  background: rgba(20, 33, 43, 0.07);
+}
+:root[data-theme='light'] .lnav-menu-btn .bars {
+  position: relative;
+  width: 20px;
+  height: 20px;
+}
+:root[data-theme='light'] .lnav-menu-btn .bars i {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: var(--r-2);
+  background: currentColor;
+  transition: transform var(--t-move) var(--ease);
+}
+:root[data-theme='light'] .lnav-menu-btn .bars i:nth-child(1) {
+  transform: translateY(-4px);
+}
+:root[data-theme='light'] .lnav-menu-btn .bars i:nth-child(2) {
+  transform: translateY(4px);
+}
+:root[data-theme='light'] #lnav[data-open] .lnav-menu-btn .bars i:nth-child(1) {
+  transform: translateY(0) rotate(45deg);
+}
+:root[data-theme='light'] #lnav[data-open] .lnav-menu-btn .bars i:nth-child(2) {
+  transform: translateY(0) rotate(-45deg);
+}
+
+:root[data-theme='light'] #lmenu {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  padding: var(--sp-96) var(--gutter) var(--sp-48);
+  background: rgba(255, 251, 242, 0.94);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  backdrop-filter: blur(24px) saturate(1.2);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity var(--t-move) var(--ease),
+    visibility 0s linear var(--t-move);
+}
+:root[data-theme='light'] #lnav[data-open] #lmenu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+:root[data-theme='light'] #lmenu ul {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-16);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+:root[data-theme='light'] #lmenu li {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity var(--t-move) var(--ease),
+    transform var(--t-move) var(--ease);
+}
+:root[data-theme='light'] #lnav[data-open] #lmenu li {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--i, 0) * 60ms); /* 60 ms steps, 240 ms for five items: under the 400 ms cap */
+}
+:root[data-theme='light'] #lmenu a {
+  display: block;
+  padding: var(--sp-8) 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+:root[data-theme='light'] #lmenu a:hover {
+  color: var(--teal);
+}
+
+@media (max-width: 719px) {
+  :root[data-theme='light'] .lnav-links,
+  :root[data-theme='light'] .lnav-toggle {
+    display: none;
+  }
+  :root[data-theme='light'] .lnav-menu-btn {
+    display: inline-flex;
+  }
+  :root[data-theme='light'] #lnav-bar {
+    width: 100%;
+    justify-content: space-between;
+    padding-left: var(--sp-16);
+  }
+}
+@media (min-width: 720px) {
+  :root[data-theme='light'] #lmenu {
+    display: none;
+  }
+}
+:root[data-theme='light'].menu-open {
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------------ */
+/* Hero                                                                */
+/* ------------------------------------------------------------------ */
+
+:root[data-theme='light'] #hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: var(--sp-96) var(--gutter) var(--sp-96);
+}
+:root[data-theme='light'] .hero-inner {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-24);
+  max-width: 680px;
+  text-align: center;
+}
+/* a soft cream glow behind the text, not a box: dark ink stays readable on bright sky */
+:root[data-theme='light'] .hero-inner::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -80px -200px;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgba(255, 252, 245, 0.8) 0%,
+    rgba(255, 252, 245, 0.76) 66%,
+    rgba(255, 252, 245, 0) 100%
+  );
+  filter: blur(24px);
+}
+@media (max-width: 767px) {
+  :root[data-theme='light'] .hero-inner::before {
+    inset: -96px -200px;
+    background: radial-gradient(
+      closest-side,
+      rgba(255, 252, 245, 0.9) 0%,
+      rgba(255, 252, 245, 0.86) 66%,
+      rgba(255, 252, 245, 0) 100%
+    );
+  }
+}
+:root[data-theme='light'] .hero-chip {
+  margin: 0;
+  padding: var(--sp-4) var(--sp-12);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-full);
+  background: var(--glass-nav);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  backdrop-filter: blur(14px) saturate(1.15);
+  color: var(--ink-2);
+}
+:root[data-theme='light'] .hero-title {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  /* the one gradient on this page's type: left to right, black to grey */
+  background: linear-gradient(90deg, #000000 0%, #666666 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  text-wrap: balance;
+}
+:root[data-theme='light'] .hero-title .hl {
+  display: block;
+}
+:root[data-theme='light'] .hero-sub {
+  margin: 0;
+  max-width: 680px;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+:root[data-theme='light'] .hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-12);
+}
+:root[data-theme='light'] .hero-proof {
+  margin: 0;
+  color: var(--ink-2);
+  text-wrap: balance;
+}
+:root[data-theme='light'] .hero-proof span {
+  white-space: nowrap; /* a wrapped line ends on a separator, never starts with one */
+}
+:root[data-theme='light'] .hero-scroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--sp-24);
+  width: fit-content;
+  margin: 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  padding: var(--sp-4) var(--sp-12);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-full);
+  background: var(--glass-nav);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  backdrop-filter: blur(14px) saturate(1.15);
+  color: var(--ink-2);
+  text-decoration: none;
+  animation: l-bob 2s var(--ease) infinite alternate;
+}
+:root[data-theme='light'] .hero-scroll:hover {
+  color: var(--ink);
+}
+:root[data-theme='light'] .hero-scroll .ic {
+  width: 16px;
+  height: 16px;
+}
+@keyframes l-bob {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(8px);
+  }
+}
+@keyframes l-rise {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes l-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes l-rise-sm {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* hero entrance: each line rises 32 px, 60 ms apart */
+:root[data-theme='light'] .hero-inner > * {
+  animation: l-rise 700ms var(--ease) both;
+}
+:root[data-theme='light'] .hero-inner > :nth-child(2) { animation-delay: 60ms; }
+:root[data-theme='light'] .hero-inner > :nth-child(3) { animation-delay: 120ms; }
+:root[data-theme='light'] .hero-inner > :nth-child(4) { animation-delay: 180ms; }
+:root[data-theme='light'] .hero-inner > :nth-child(5) { animation-delay: 240ms; }
+
+/* ------------------------------------------------------------------ */
+/* Tagline reveal                                                      */
+/* ------------------------------------------------------------------ */
+
+:root[data-theme='light'] #tagline-band {
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--gutter);
+}
+:root[data-theme='light'] #tagline-text {
+  width: min(var(--content-w), 100%);
+  margin: 0;
+  padding: var(--sp-64) var(--sp-24);
+  border-radius: var(--r-24);
+  text-align: center;
+  color: var(--ink);
+}
+:root[data-theme='light'] .tl-line {
+  display: block;
+  max-width: 680px;
+  margin: 0 auto;
+  text-wrap: balance;
+}
+:root[data-theme='light'] .tl-line + .tl-line {
+  margin-top: var(--sp-12);
+}
+:root[data-theme='light'] .tagline .w {
+  color: rgba(20, 33, 43, 0.3);
+  transition: color 500ms var(--ease);
+}
+:root[data-theme='light'] .tagline .w.on {
+  color: var(--ink);
+}
+@media (max-width: 767px) {
+  :root[data-theme='light'] #tagline-text {
+    padding: var(--sp-48) var(--sp-16);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Content grid                                                        */
+/* ------------------------------------------------------------------ */
+
+:root[data-theme='light'] main#content {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--sp-24);
+  align-items: start;
+  width: min(var(--content-w), calc(100% - 2 * var(--gutter)));
+  margin: var(--sg) auto 0;
+}
+/* anchors land below the floating nav */
+:root[data-theme='light'] main#content > section,
+:root[data-theme='light'] #hero {
+  scroll-margin-top: var(--sp-96);
+}
+:root[data-theme='light'] main#content > section {
+  margin: 0;
+  grid-column: 1 / -1;
+}
+:root[data-theme='light'] main#content > #projects { order: 1; }
+:root[data-theme='light'] main#content > #sling-right { order: 2; }
+:root[data-theme='light'] main#content > #sling-left { order: 3; }
+:root[data-theme='light'] main#content > #skills { order: 4; }
+:root[data-theme='light'] main#content > #languages { order: 5; }
+:root[data-theme='light'] main#content > #contact { order: 6; }
+:root[data-theme='light'] #table-hint { display: none; }
+
+/* section groups sit one section gap apart (the 24 px grid gap is part of it) */
+:root[data-theme='light'] main#content > #sling-right,
+:root[data-theme='light'] main#content > #sling-left,
+:root[data-theme='light'] main#content > #skills,
+:root[data-theme='light'] main#content > #languages,
+:root[data-theme='light'] main#content > #contact {
+  margin-top: calc(var(--sg) - var(--sp-24));
+}
+@media (min-width: 700px) {
+  :root[data-theme='light'] main#content > #sling-right,
+  :root[data-theme='light'] main#content > #sling-left {
+    grid-column: span 6;
+  }
+  :root[data-theme='light'] main#content > #skills {
+    grid-column: span 7;
+  }
+  :root[data-theme='light'] main#content > #languages {
+    grid-column: span 5;
+  }
+}
+@media (max-width: 699px) {
+  :root[data-theme='light'] main#content > #sling-left,
+  :root[data-theme='light'] main#content > #languages {
+    margin-top: 0;
+  }
+}
+
+/* card chrome */
+:root[data-theme='light'] .card,
+:root[data-theme='light'] .sling,
+:root[data-theme='light'] #skills,
+:root[data-theme='light'] #languages,
+:root[data-theme='light'] #contact {
+  border-radius: var(--r-16);
+  padding: var(--sp-24);
+  color: var(--ink);
+}
+:root[data-theme='light'] #skills,
+:root[data-theme='light'] #languages,
+:root[data-theme='light'] .sling {
+  align-self: stretch;
+}
+
+/* section headings: a glass pill over the video */
+:root[data-theme='light'] #projects > h2,
+:root[data-theme='light'] #more-projects h3 {
+  grid-column: 1 / -1;
+  display: block;
+  width: fit-content;
+  margin: 0;
+  padding: var(--sp-8) var(--sp-16);
+  border-radius: var(--r-full);
+  color: var(--ink);
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+:root[data-theme='light'] #more-projects h3 {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  letter-spacing: 0;
+  padding: var(--sp-4) var(--sp-12);
+}
+:root[data-theme='light'] #more-projects h3::after {
+  content: ' on GitHub';
+}
+:root[data-theme='light'] .sling h2,
+:root[data-theme='light'] #skills h2,
+:root[data-theme='light'] #languages h2 {
+  margin: 0 0 var(--sp-16);
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+/* projects */
+:root[data-theme='light'] #projects {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-24);
+  align-items: start;
+}
+@media (min-width: 700px) {
+  :root[data-theme='light'] #projects {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1100px) {
+  :root[data-theme='light'] #projects {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+:root[data-theme='light'] .card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: start;
+  align-items: center;
+  column-gap: var(--sp-12);
+  row-gap: var(--sp-8);
+  margin: 0;
+  transition: transform var(--t-move) var(--ease);
+}
+:root[data-theme='light'] .card:hover {
+  transform: translateY(-2px);
+}
+:root[data-theme='light'] .card h3 {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 500;
+  color: var(--ink);
+}
+/* the long form of the title is for screen readers; the card shows the short one */
+:root[data-theme='light'] .card h3 .sub {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+:root[data-theme='light'] .card .stack,
+:root[data-theme='light'] .sling .stack {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+:root[data-theme='light'] .card .sum {
+  grid-column: 1 / -1;
+  margin: 0 0 var(--sp-8);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+/* the shared .detail wrapper dissolves so its bullets and link join the card grid */
+:root[data-theme='light'] .card .detail {
+  display: contents;
+}
+:root[data-theme='light'] .card .detail ul {
+  grid-column: 1 / -1;
+  grid-row: 5;
+  margin: var(--sp-8) 0 0;
+  padding-left: var(--sp-16);
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 20px;
+}
+:root[data-theme='light'] .card .detail li {
+  margin: 0 0 var(--sp-8);
+  text-wrap: pretty;
+}
+:root[data-theme='light'] .card .detail .links {
+  grid-column: 2;
+  grid-row: 4;
+  justify-self: end;
+  margin: 0;
+  text-align: right;
+}
+:root[data-theme='light'] .card .detail .links a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  padding: var(--sp-8) var(--sp-4);
+  color: var(--teal);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: right;
+  transition: color var(--t-color) var(--ease), transform var(--t-color) var(--ease);
+}
+:root[data-theme='light'] .card .detail .links a::before {
+  content: '';
+  flex: none;
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  -webkit-mask: var(--gh) center / contain no-repeat;
+  mask: var(--gh) center / contain no-repeat;
+}
+:root[data-theme='light'] .card .detail .links a:hover {
+  color: var(--teal-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+:root[data-theme='light'] .card .detail .links a:active {
+  transform: scale(0.98);
+}
+/* Phosphor "github-logo" as a mask, so the existing link text stays untouched */
+:root[data-theme='light'] {
+  --gh: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M208.31,75.68A59.78,59.78,0,0,0,202.93,28,8,8,0,0,0,196,24a59.75,59.75,0,0,0-48,24H124A59.75,59.75,0,0,0,76,24a8,8,0,0,0-6.93,4,59.78,59.78,0,0,0-5.38,47.68A58.14,58.14,0,0,0,56,104v8a56.06,56.06,0,0,0,48.44,55.47A39.8,39.8,0,0,0,96,192v8H72a24,24,0,0,1-24-24A40,40,0,0,0,8,136a8,8,0,0,0,0,16,24,24,0,0,1,24,24,40,40,0,0,0,40,40H96v16a8,8,0,0,0,16,0V192a24,24,0,0,1,48,0v40a8,8,0,0,0,16,0V192a39.8,39.8,0,0,0-8.44-24.53A56.06,56.06,0,0,0,216,112v-8A58.14,58.14,0,0,0,208.31,75.68ZM200,112a40,40,0,0,1-40,40H112a40,40,0,0,1-40-40v-8a41.74,41.74,0,0,1,6.9-22.48A8,8,0,0,0,80,73.83a43.81,43.81,0,0,1,.79-33.58,43.88,43.88,0,0,1,32.32,20.06A8,8,0,0,0,119.82,64h32.35a8,8,0,0,0,6.74-3.69,43.87,43.87,0,0,1,32.32-20.06A43.81,43.81,0,0,1,192,73.83a8.09,8.09,0,0,0,1,7.65A41.72,41.72,0,0,1,200,104Z'/%3E%3C/svg%3E");
+}
+
+/* Details toggle (created by light/content.ts) */
+:root[data-theme='light'] .card-toggle {
+  grid-column: 1;
+  grid-row: 4;
+  justify-self: start;
+  min-height: 40px;
+  padding: var(--sp-8) var(--sp-12);
+  font-size: 14px;
+  line-height: 20px;
+}
+:root[data-theme='light'] .card-toggle::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin-left: var(--sp-4);
+  margin-top: -3px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--t-move) var(--ease);
+}
+:root[data-theme='light'] .card.is-open .card-toggle::after {
+  transform: translateY(3px) rotate(-135deg);
+}
+/* collapsed until the light chunk has wired the toggle (so a failed load never hides content) */
+:root[data-theme='light'].light-ready .card:not(.is-open) .detail ul {
+  display: none;
+}
+:root[data-theme='light'].light-ready .card.is-open .detail ul {
+  animation: l-rise-sm var(--t-move) var(--ease) both;
+}
+
+/* more on GitHub */
+:root[data-theme='light'] #more-projects {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+:root[data-theme='light'] #more-projects ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--sp-12);
+  margin: var(--sp-12) 0 0;
+  padding: 0;
+  list-style: none;
+}
+:root[data-theme='light'] #more-projects li {
+  margin: 0;
+  padding: var(--sp-12) var(--sp-16);
+  border-radius: var(--r-12);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-2);
+}
+:root[data-theme='light'] #more-projects a {
+  font-weight: 600;
+}
+
+/* experience and education */
+:root[data-theme='light'] .sling {
+  position: relative;
+  inset: auto;
+  transform: none;
+  clip-path: none;
+  width: auto;
+  height: auto;
+}
+:root[data-theme='light'] .sling .detail {
+  display: block;
+}
+:root[data-theme='light'] .sling .stack {
+  margin-bottom: var(--sp-8);
+}
+:root[data-theme='light'] .sling .detail ul {
+  margin: 0;
+  padding-left: var(--sp-16);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-2);
+}
+:root[data-theme='light'] .sling .detail li {
+  margin: 0 0 var(--sp-8);
+  text-wrap: pretty;
+}
+:root[data-theme='light'] .sling .detail strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* skills and languages */
+:root[data-theme='light'] .skill-groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-16);
+}
+:root[data-theme='light'] .skill-group h3 {
+  margin: 0 0 var(--sp-8);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+:root[data-theme='light'] .chips,
+:root[data-theme='light'] .lanes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+:root[data-theme='light'] .skill-group .chips li,
+:root[data-theme='light'] .lane {
+  padding: var(--sp-4) var(--sp-12);
+  border: 1px solid var(--chip-line);
+  border-radius: var(--r-full);
+  background: var(--chip-bg);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+}
+:root[data-theme='light'] .lane .lvl {
+  margin-left: var(--sp-8);
+  color: var(--teal);
+  font-size: 12px;
+  font-weight: 600;
+}
+:root[data-theme='light'].light-ready .bumpers,
+:root[data-theme='light'].light-ready #skills-also {
+  display: none;
+}
+
+/* contact */
+:root[data-theme='light'] #contact {
+  text-align: center;
+  padding: var(--sp-48) var(--sp-24);
+}
+:root[data-theme='light'] #contact > h2,
+:root[data-theme='light'] #contact > ul {
+  display: none;
+}
+:root[data-theme='light'] .contact-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-12);
+}
+:root[data-theme='light'] .contact-cta h2 {
+  margin: 0;
+  color: var(--ink);
+}
+:root[data-theme='light'] .contact-cta p {
+  margin: 0;
+  max-width: 680px;
+  color: var(--ink-2);
+  text-wrap: balance;
+}
+:root[data-theme='light'] .contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-12);
+  margin-top: var(--sp-12);
+}
+
+/* footer */
+:root[data-theme='light'] #lfooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-16);
+  width: min(var(--content-w), calc(100% - 2 * var(--gutter)));
+  margin: var(--sg) auto var(--sp-24);
+  padding: var(--sp-16) var(--sp-24);
+  border-radius: var(--r-16);
+}
+:root[data-theme='light'] #lfooter p {
+  margin: 0;
+  color: var(--ink-2);
+  text-wrap: balance;
+}
+
+/* ------------------------------------------------------------------ */
+/* Scroll reveals (classes added by light/reveal.ts)                   */
+/* ------------------------------------------------------------------ */
+
+:root[data-theme='light'] .reveal:not(.in) {
+  opacity: 0;
+  transform: translateY(32px);
+}
+:root[data-theme='light'] .reveal:not(.done) {
+  transition:
+    opacity 700ms var(--ease),
+    transform 700ms var(--ease);
+}
+
+/* ------------------------------------------------------------------ */
+/* Theme switching                                                     */
+/* ------------------------------------------------------------------ */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 500ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* fallback when document.startViewTransition is missing: fade the page */
+html.theme-fading body {
+  opacity: 0;
+  transition: opacity 250ms var(--ease);
+}
+html.theme-fading-in body {
+  transition: opacity 250ms var(--ease);
+}
+
+/* ------------------------------------------------------------------ */
+/* Reduced motion: no movement, plain opacity                          */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme='light'] .hero-scroll {
+    animation: none;
+  }
+  :root[data-theme='light'] .hero-inner > * {
+    animation: l-fade 300ms var(--ease) both;
+    animation-delay: 0s !important;
+  }
+  :root[data-theme='light'] .reveal:not(.in) {
+    transform: none;
+  }
+  :root[data-theme='light'] .reveal:not(.done) {
+    transition: opacity 300ms var(--ease);
+  }
+  :root[data-theme='light'] .card:hover,
+  :root[data-theme='light'] .btn:hover {
+    transform: none;
+  }
+  :root[data-theme='light'] .card.is-open .detail ul {
+    animation: l-fade 300ms var(--ease) both;
+  }
+  :root[data-theme='light'] #lmenu li {
+    transform: none;
+  }
+  :root[data-theme='light'] .tagline .w {
+    transition: none;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

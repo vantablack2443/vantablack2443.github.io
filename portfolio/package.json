@@ -1,0 +1,20 @@
+{
+  "name": "portfolio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "planck": "1.4.3"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vite": "7.3.6",
+    "vitest": "3.2.7"
+  }
+}

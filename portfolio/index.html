@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en" class="no-js" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Dipu Balamurugan | Portfolio pinball table</title>
+    <meta
+      name="description"
+      content="Dipu Balamurugan is a B.Sc. Informatik student at Saarland University (security, data networks, software engineering). Projects, education and skills, laid out as a playable pinball table."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Dipu Balamurugan | Portfolio pinball table" />
+    <meta
+      property="og:description"
+      content="A playable pinball table that holds the CV: six projects, education, experience, skills and languages."
+    />
+    <!-- Relative for now; make it an absolute URL once the domain is known. -->
+    <meta property="og:image" content="light/poster.jpg" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Before first paint: pick the theme (saved choice, else the OS preference) and, in the dark theme,
+         the layout ("table" unless the visitor chose reader mode). Light never gets "table". -->
+    <script>
+      (function () {
+        var d = document.documentElement;
+        var theme = null;
+        try {
+          theme = localStorage.getItem('theme');
+        } catch (e) {}
+        if (theme !== 'light' && theme !== 'dark') {
+          theme = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        var reader = false;
+        try {
+          reader = localStorage.getItem('portfolio-mode') === 'reader';
+        } catch (e) {}
+        d.setAttribute('data-theme', theme);
+        d.className = theme === 'dark' && !reader ? 'js table' : 'js';
+        var tc = document.querySelector('meta[name="theme-color"]');
+        if (tc) tc.setAttribute('content', theme === 'light' ? '#EAF3FA' : '#000000');
+        var cs = document.querySelector('meta[name="color-scheme"]');
+        if (cs) cs.setAttribute('content', theme);
+        if (theme === 'light') document.title = 'Dipu Balamurugan | Portfolio';
+      })();
+    </script>
+    <link rel="stylesheet" href="/src/styles/base.css" />
+    <link rel="stylesheet" href="/src/styles/arcade.css" />
+    <link rel="stylesheet" href="/src/styles/light.css" />
+  </head>
+  <body>
+    <a class="skip" href="#content">Skip to content</a>
+
+    <button id="to-table" class="js-only reader-bar" type="button">Play the pinball table</button>
+    <button
+      id="theme-reader"
+      class="btn btn-ghost js-only theme-toggle"
+      type="button"
+      data-theme-toggle
+      data-target="light"
+      aria-pressed="false"
+    >
+      <svg class="ic" aria-hidden="true"><use href="#i-sun" /></svg><span>Daylight</span>
+    </button>
+    <div id="small-banner" class="js-only" hidden>
+      Best played on a bigger screen — or
+      <button id="banner-read" type="button">read the CV</button>
+    </div>
+
+    <!-- Phosphor icons (regular, MIT), inline so no icon font is loaded -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+      <symbol id="i-github" viewBox="0 0 256 256"><path fill="currentColor" d="M208.31,75.68A59.78,59.78,0,0,0,202.93,28,8,8,0,0,0,196,24a59.75,59.75,0,0,0-48,24H124A59.75,59.75,0,0,0,76,24a8,8,0,0,0-6.93,4,59.78,59.78,0,0,0-5.38,47.68A58.14,58.14,0,0,0,56,104v8a56.06,56.06,0,0,0,48.44,55.47A39.8,39.8,0,0,0,96,192v8H72a24,24,0,0,1-24-24A40,40,0,0,0,8,136a8,8,0,0,0,0,16,24,24,0,0,1,24,24,40,40,0,0,0,40,40H96v16a8,8,0,0,0,16,0V192a24,24,0,0,1,48,0v40a8,8,0,0,0,16,0V192a39.8,39.8,0,0,0-8.44-24.53A56.06,56.06,0,0,0,216,112v-8A58.14,58.14,0,0,0,208.31,75.68ZM200,112a40,40,0,0,1-40,40H112a40,40,0,0,1-40-40v-8a41.74,41.74,0,0,1,6.9-22.48A8,8,0,0,0,80,73.83a43.81,43.81,0,0,1,.79-33.58,43.88,43.88,0,0,1,32.32,20.06A8,8,0,0,0,119.82,64h32.35a8,8,0,0,0,6.74-3.69,43.87,43.87,0,0,1,32.32-20.06A43.81,43.81,0,0,1,192,73.83a8.09,8.09,0,0,0,1,7.65A41.72,41.72,0,0,1,200,104Z"/></symbol>
+      <symbol id="i-envelope" viewBox="0 0 256 256"><path fill="currentColor" d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM203.43,64,128,133.15,52.57,64ZM216,192H40V74.19l82.59,75.71a8,8,0,0,0,10.82,0L216,74.19V192Z"/></symbol>
+      <symbol id="i-file-text" viewBox="0 0 256 256"><path fill="currentColor" d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"/></symbol>
+      <symbol id="i-speaker-high" viewBox="0 0 256 256"><path fill="currentColor" d="M155.51,24.81a8,8,0,0,0-8.42.88L77.25,80H32A16,16,0,0,0,16,96v64a16,16,0,0,0,16,16H77.25l69.84,54.31A8,8,0,0,0,160,224V32A8,8,0,0,0,155.51,24.81ZM32,96H72v64H32ZM144,207.64,88,164.09V91.91l56-43.55Zm54-106.08a40,40,0,0,1,0,52.88,8,8,0,0,1-12-10.58,24,24,0,0,0,0-31.72,8,8,0,0,1,12-10.58ZM248,128a79.9,79.9,0,0,1-20.37,53.34,8,8,0,0,1-11.92-10.67,64,64,0,0,0,0-85.33,8,8,0,1,1,11.92-10.67A79.83,79.83,0,0,1,248,128Z"/></symbol>
+      <symbol id="i-speaker-slash" viewBox="0 0 256 256"><path fill="currentColor" d="M53.92,34.62A8,8,0,1,0,42.08,45.38L73.55,80H32A16,16,0,0,0,16,96v64a16,16,0,0,0,16,16H77.25l69.84,54.31A8,8,0,0,0,160,224V175.09l42.08,46.29a8,8,0,1,0,11.84-10.76ZM32,96H72v64H32ZM144,207.64,88,164.09V95.89l56,61.6Zm42-63.77a24,24,0,0,0,0-31.72,8,8,0,1,1,12-10.57,40,40,0,0,1,0,52.88,8,8,0,0,1-12-10.59Zm-80.16-76a8,8,0,0,1,1.4-11.23l39.85-31A8,8,0,0,1,160,32v74.83a8,8,0,0,1-16,0V48.36l-26.94,21A8,8,0,0,1,105.84,67.91ZM248,128a79.9,79.9,0,0,1-20.37,53.34,8,8,0,0,1-11.92-10.67,64,64,0,0,0,0-85.33,8,8,0,1,1,11.92-10.67A79.83,79.83,0,0,1,248,128Z"/></symbol>
+      <symbol id="i-play" viewBox="0 0 256 256"><path fill="currentColor" d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"/></symbol>
+      <symbol id="i-book-open" viewBox="0 0 256 256"><path fill="currentColor" d="M232,48H160a40,40,0,0,0-32,16A40,40,0,0,0,96,48H24a8,8,0,0,0-8,8V200a8,8,0,0,0,8,8H96a24,24,0,0,1,24,24,8,8,0,0,0,16,0,24,24,0,0,1,24-24h72a8,8,0,0,0,8-8V56A8,8,0,0,0,232,48ZM96,192H32V64H96a24,24,0,0,1,24,24V200A39.81,39.81,0,0,0,96,192Zm128,0H160a39.81,39.81,0,0,0-24,8V88a24,24,0,0,1,24-24h64Z"/></symbol>
+      <symbol id="i-sun" viewBox="0 0 256 256"><path fill="currentColor" d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></symbol>
+      <symbol id="i-game-controller" viewBox="0 0 256 256"><path fill="currentColor" d="M176,112H152a8,8,0,0,1,0-16h24a8,8,0,0,1,0,16ZM104,96H96V88a8,8,0,0,0-16,0v8H72a8,8,0,0,0,0,16h8v8a8,8,0,0,0,16,0v-8h8a8,8,0,0,0,0-16ZM241.48,200.65a36,36,0,0,1-54.94,4.81c-.12-.12-.24-.24-.35-.37L146.48,160h-37L69.81,205.09l-.35.37A36.08,36.08,0,0,1,44,216,36,36,0,0,1,8.56,173.75a.68.68,0,0,1,0-.14L24.93,89.52A59.88,59.88,0,0,1,83.89,40H172a60.08,60.08,0,0,1,59,49.25c0,.06,0,.12,0,.18l16.37,84.17a.68.68,0,0,1,0,.14A35.74,35.74,0,0,1,241.48,200.65ZM172,56H83.9a43.9,43.9,0,0,0-43.25,36.4s0,.08,0,.12L24.24,176.6a20,20,0,0,0,34.4,17.14.88.88,0,0,0,.14-.14L103.64,142a8,8,0,0,1,6-2.68h36.74a8,8,0,0,1,6,2.68l44.86,51.59a.88.88,0,0,0,.14.14,20,20,0,0,0,34.4-17.14l-16.37-84.07,0-.12A44.08,44.08,0,0,0,172,56Z"/></symbol>
+      <symbol id="i-arrow-down" viewBox="0 0 256 256"><path fill="currentColor" d="M205.66,149.66l-72,72a8,8,0,0,1-11.32,0l-72-72a8,8,0,0,1,11.32-11.32L120,196.69V40a8,8,0,0,1,16,0V196.69l58.34-58.35a8,8,0,0,1,11.32,11.32Z"/></symbol>
+    </svg>
+
+    <!-- ============ Light theme only (hidden in dark): background, floating nav ============ -->
+    <div id="lbg" class="light-only" aria-hidden="true"></div>
+
+    <header id="lnav" class="light-only">
+      <nav id="lnav-bar" aria-label="Primary">
+        <a class="lnav-brand title-3" href="#hero" aria-label="Dipu Balamurugan, back to the top">Dipu B.</a>
+        <ul class="lnav-links">
+          <li><a class="title-4" href="#projects" data-section="projects">Projects</a></li>
+          <li><a class="title-4" href="#sling-right" data-section="sling-right">Experience</a></li>
+          <li><a class="title-4" href="#skills" data-section="skills">Skills</a></li>
+          <li><a class="title-4" href="#contact" data-section="contact">Contact</a></li>
+        </ul>
+        <button class="btn btn-ghost theme-toggle lnav-toggle" type="button" data-theme-toggle data-target="dark" aria-pressed="false">
+          <svg class="ic" aria-hidden="true"><use href="#i-game-controller" /></svg><span>Arcade mode</span>
+        </button>
+        <button id="lmenu-btn" class="lnav-menu-btn" type="button" aria-expanded="false" aria-controls="lmenu" aria-label="Open menu">
+          <span class="bars" aria-hidden="true"><i></i><i></i></span>
+        </button>
+      </nav>
+      <div id="lmenu" inert>
+        <ul>
+          <li style="--i: 0"><a class="heading-4" href="#projects">Projects</a></li>
+          <li style="--i: 1"><a class="heading-4" href="#sling-right">Experience</a></li>
+          <li style="--i: 2"><a class="heading-4" href="#skills">Skills</a></li>
+          <li style="--i: 3"><a class="heading-4" href="#contact">Contact</a></li>
+          <li style="--i: 4">
+            <button class="btn btn-ghost theme-toggle" type="button" data-theme-toggle data-target="dark" aria-pressed="false">
+              <svg class="ic" aria-hidden="true"><use href="#i-game-controller" /></svg><span>Arcade mode</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </header>
+
+    <div id="app">
+      <!-- Left panel: the machine's backglass -->
+      <aside id="panel-left" class="panel" aria-label="About Dipu">
+        <header id="backglass">
+          <h1 id="name" class="heading-2">Dipu Balamurugan</h1>
+          <p id="tagline" class="body-5">
+            B.Sc. Informatik @ Saarland University — Security · Data Networks · Software Engineering
+          </p>
+          <p id="sub" class="body-6">Saarbrücken, Germany<span class="msc"> · M.Sc. Informatik place secured</span></p>
+          <nav id="links" aria-label="Links">
+            <a id="link-github" class="btn btn-ghost" href="https://github.com/vantablack2443" rel="me noopener"
+              ><svg class="ic" aria-hidden="true"><use href="#i-github" /></svg>GitHub</a
+            >
+            <a id="link-email" class="btn btn-ghost" href="#contact" hidden
+              ><svg class="ic" aria-hidden="true"><use href="#i-envelope" /></svg>Email</a
+            >
+            <a id="link-cv" class="btn btn-ghost" href="cv.pdf"
+              ><svg class="ic" aria-hidden="true"><use href="#i-file-text" /></svg>CV (PDF)</a
+            >
+          </nav>
+        </header>
+
+        <!-- Compact copy of the CV sections for sighted table users. The accessible
+             originals live in <main> below (slingshots, bumpers, lanes). -->
+        <div id="panel-sections" class="table-only" aria-hidden="true">
+          <section class="ps">
+            <h2 class="caption-4 label">Education</h2>
+            <p class="body-6"><strong>B.Sc. Informatik</strong>, Saarland University</p>
+            <p class="body-6 dim">Apr 2023 – present · 130+ ECTS · M.Sc. place secured</p>
+            <p class="body-6"><strong>Studienkolleg Jena</strong>, T-Kurs (2,2), Apr 2022 – Jan 2023</p>
+          </section>
+          <section class="ps">
+            <h2 class="caption-4 label">Experience</h2>
+            <p class="body-6"><strong>HiWi</strong>, Campus Library Informatik + Mathematik</p>
+            <p class="body-6 dim">Max Planck Institute for Informatics · Apr 2024 – present</p>
+            <p class="body-6 dim">Tech support, GIMP digitisation, Python plugins.</p>
+          </section>
+          <section class="ps">
+            <h2 class="caption-4 label">Skills</h2>
+            <ul class="chips mono">
+              <li>Python</li><li>C</li><li>Java</li><li>Kotlin</li><li>Rust</li>
+              <li>SQL</li><li>RISC-V</li><li>Git</li><li>Docker</li><li>GitLab</li>
+            </ul>
+          </section>
+          <section class="ps">
+            <h2 class="caption-4 label">Languages</h2>
+            <ul class="chips mono">
+              <li>English C2</li><li>German B2</li><li>Malayalam C2</li><li>Hindi B2</li>
+            </ul>
+          </section>
+        </div>
+      </aside>
+
+      <!-- Light theme: hero in the calm sky, then the tagline reveal -->
+      <section id="hero" class="light-only" aria-labelledby="hero-h">
+        <div class="hero-inner">
+          <p class="hero-chip caption-3">B.Sc. Informatik · Saarland University</p>
+          <h1 id="hero-h" class="heading-1 hero-title">
+            <span class="hl">I build software</span> <span class="hl">from the processor up.</span>
+          </h1>
+          <p class="hero-sub body-3">
+            Computer science student in Saarbrücken, focused on security, data networks and software
+            engineering. I like knowing what every layer underneath is doing.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="#projects">See my projects</a>
+            <button class="btn btn-ghost" type="button" data-theme-toggle data-target="dark" aria-pressed="false">
+              Play the arcade
+            </button>
+          </div>
+          <p class="hero-proof caption-2">
+            <span>130+ ECTS ·</span> <span>M.Sc. place secured ·</span> <span>HiWi at MPI for Informatics</span>
+          </p>
+        </div>
+        <a class="hero-scroll caption-3" href="#projects" aria-label="Scroll to the projects">
+          <span>Scroll</span><svg class="ic" aria-hidden="true"><use href="#i-arrow-down" /></svg>
+        </a>
+      </section>
+
+      <section id="tagline-band" class="light-only" aria-label="In one line">
+        <p id="tagline-text" class="tagline heading-2">
+          <span class="tl-line">From MIPS registers to multi-agent AI,</span>
+          <span class="tl-line">I like building the whole stack.</span>
+        </p>
+      </section>
+
+      <div id="viewport">
+        <div id="cabinet">
+      <div id="stage" data-state="ATTRACT">
+        <!-- Table art (decoration only) -->
+        <div id="playfield" aria-hidden="true"></div>
+
+        <main id="content">
+          <!-- Education (left slingshot) -->
+          <section id="sling-left" class="sling" aria-labelledby="edu-h">
+            <h2 id="edu-h"><span class="full">Education</span></h2>
+            <p class="tag" aria-hidden="true"><b>B.Sc.</b><span>UdS</span></p>
+            <div class="detail">
+              <p class="stack">Saarland University &amp; Studienkolleg Jena</p>
+              <ul>
+                <li>
+                  <strong>B.Sc. Informatik</strong>, Saarland University — Apr 2023 – present. 130+ ECTS,
+                  expected graduation by Sep 2027. M.Sc. Informatik place secured.
+                </li>
+                <li>
+                  <strong>Studienkolleg Jena</strong> (T-Kurs, grade 2,2) — Apr 2022 – Jan 2023.
+                </li>
+              </ul>
+            </div>
+            <button class="open" type="button" aria-haspopup="dialog">Details: Education</button>
+          </section>
+
+          <!-- Experience (right slingshot) -->
+          <section id="sling-right" class="sling" aria-labelledby="exp-h">
+            <h2 id="exp-h"><span class="full">Experience</span></h2>
+            <p class="tag" aria-hidden="true"><b>HiWi</b><span>MPI-INF</span></p>
+            <div class="detail">
+              <p class="stack">HiWi, Campus Library Informatik + Mathematik (Max Planck Institute for Informatics)</p>
+              <ul>
+                <li>Apr 2024 – present.</li>
+                <li>Front-desk tech support for library users.</li>
+                <li>Digitisation of materials with GIMP.</li>
+                <li>Wrote Python scripts and plugins that automate the GIMP digitisation workflow.</li>
+              </ul>
+            </div>
+            <button class="open" type="button" aria-haspopup="dialog">Details: Experience</button>
+          </section>
+
+          <!-- Projects (cards) -->
+          <section id="projects" aria-labelledby="projects-h">
+            <h2 id="projects-h">Projects</h2>
+
+            <article id="card-orion" class="card" data-neon="pink">
+              <h3><span class="t">Orion</span><span class="sub"> — Multi-Agent AI Platform</span></h3>
+              <p class="stack">Next.js · TypeScript · Gemini API</p>
+              <p class="sum">Solo hackathon build: 10 AI agents for enterprise workflows.</p>
+              <div class="detail">
+                <ul>
+                  <li>
+                    Built solo at the MonaAI Hackathon: 10 domain-specific agents for enterprise workflows
+                    (document validation, HR shift replacement, CV fraud detection, pricing).
+                  </li>
+                  <li>
+                    Designed the prompts for each agent on Gemini 2.5 Flash, e.g. an invoice agent that
+                    extracts invoice details, routes them to the right department and summarises the action
+                    needed.
+                  </li>
+                  <li>
+                    Built the document upload pipeline (PDF, DOCX, images) into the model, with a Next.js 14
+                    and Tailwind frontend.
+                  </li>
+                </ul>
+                <p class="links">
+                  <a href="https://github.com/vantablack2443/MonaAI-Hackathon" rel="noopener">Orion on GitHub</a>
+                </p>
+              </div>
+              <button class="open" type="button" aria-haspopup="dialog">Details: Orion</button>
+            </article>
+
+            <article id="card-saardew" class="card" data-neon="cyan">
+              <h3><span class="t">Saardew</span><span class="sub"> — Farming Simulation</span></h3>
+              <p class="stack">Kotlin · Gradle · Detekt · JaCoCo</p>
+              <p class="sum">Team tick-based farming sim, UML-first, tested and analysed.</p>
+              <div class="detail">
+                <ul>
+                  <li>Built a tick-based simulation as a team in the Softwarepraktikum at Saarland University.</li>
+                  <li>
+                    Started with UML design, split the work by modules, and adapted the implementation when the
+                    requirements changed mid-project.
+                  </li>
+                  <li>
+                    Reviewed each other's code and used unit and system tests plus static analysis (Detekt) and
+                    coverage (JaCoCo) for code quality.
+                  </li>
+                </ul>
+                <p class="links">
+                  <a href="https://github.com/vantablack2443/FarmingSimulation_Kotlin" rel="noopener"
+                    >Saardew on GitHub</a
+                  >
+                </p>
+              </div>
+              <button class="open" type="button" aria-haspopup="dialog">Details: Saardew</button>
+            </article>
+
+            <article id="card-2048" class="card" data-neon="amber">
+              <h3><span class="t">2048 + CPU</span><span class="sub"> — 2048 with a CPU player</span></h3>
+              <p class="stack">Java · OOP · TDD</p>
+              <p class="sum">Test-first game logic plus a heuristic CPU player.</p>
+              <div class="detail">
+                <ul>
+                  <li>
+                    Wrote tests for the game logic first, then implemented it: tile-merging, scoring and
+                    game-state management.
+                  </li>
+                  <li>Structured the game logic using object-oriented principles.</li>
+                  <li>
+                    Added a CPU player that chooses moves by heuristic evaluation (e.g. maximising free tiles,
+                    keeping the highest tile in a corner).
+                  </li>
+                </ul>
+                <p class="links">
+                  <a href="https://github.com/vantablack2443/Java_2048-Game" rel="noopener">2048 on GitHub</a>
+                </p>
+              </div>
+              <button class="open" type="button" aria-haspopup="dialog">Details: 2048 + CPU</button>
+            </article>
+
+            <article id="card-pagerank" class="card" data-neon="lime">
+              <h3><span class="t">PageRank</span><span class="sub"> — PageRank in C</span></h3>
+              <p class="stack">C · Graphs</p>
+              <p class="sum">Random-surfer PageRank on memory-efficient graphs.</p>
+              <div class="detail">
+                <ul>
+                  <li>
+                    Implemented Google's PageRank algorithm from scratch in C to analyse graph-based link
+                    structures.
+                  </li>
+                  <li>Built graph traversal, iterative rank computation and convergence checks.</li>
+                  <li>Focused on memory-efficient data structures for larger graph datasets.</li>
+                </ul>
+                <p class="links">
+                  <a href="https://github.com/vantablack2443/C_PageRank" rel="noopener">PageRank on GitHub</a>
+                </p>
+              </div>
+              <button class="open" type="button" aria-haspopup="dialog">Details: PageRank</button>
+            </article>
+
+            <article id="card-edge" class="card" data-neon="cyan">
+              <h3><span class="t">Edge Detect</span><span class="sub"> — Edge Detection in C</span></h3>
+              <p class="stack">C · Image Processing</p>
+              <p class="sum">Gaussian blur, gradients, magnitude, thresholding.</p>
+              <div class="detail">
+                <ul>
+                  <li>Implemented edge-detection techniques to find object boundaries in digital images.</li>
+                  <li>Processed pixel-level image data and applied filtering operations to extract features.</li>
+                  <li>Worked with low-level memory management and performance-oriented C.</li>
+                </ul>
+                <p class="links">
+                  <a href="https://github.com/vantablack2443/Edge-Detection_C" rel="noopener"
+                    >Edge Detection on GitHub</a
+                  >
+                </p>
+              </div>
+              <button class="open" type="button" aria-haspopup="dialog">Details: Edge Detection</button>
+            </article>
+
+            <article id="card-mips" class="card" data-neon="pink">
+              <h3><span class="t">MIPS R-P-S</span><span class="sub"> — Rock-Paper-Scissors in MIPS</span></h3>
+              <p class="stack">MIPS Assembly</p>
+              <p class="sum">Full interactive game in assembly: state, input, scoring.</p>
+              <div class="detail">
+                <ul>
+                  <li>
+                    Implemented an interactive game entirely in MIPS assembly: game state, user input,
+                    branching logic and score tracking.
+                  </li>
+                  <li>
+                    Gained practice in processor architecture, low-level execution flow and assembly-level
+                    debugging.
+                  </li>
+                </ul>
+                <p class="links">
+                  <a href="https://github.com/vantablack2443/MIPS---RockPaperScissors" rel="noopener"
+                    >Rock-Paper-Scissors in MIPS on GitHub</a
+                  >
+                </p>
+              </div>
+              <button class="open" type="button" aria-haspopup="dialog">Details: MIPS Rock-Paper-Scissors</button>
+            </article>
+
+            <div id="more-projects" class="more-projects">
+              <h3>More</h3>
+              <ul>
+                <li>
+                  <a href="https://github.com/vantablack2443/django-fame-system" rel="noopener">Django Web App</a>
+                  — Django ORM database operations, external REST API integration, HTML/CSS frontend pages
+                  (course project).
+                </li>
+                <li>
+                  <a href="https://github.com/vantablack2443/Rustbook-Notes" rel="noopener">Rust Book notes</a>
+                  — notes and exercises from working through the Rust book.
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- Skills (pop bumpers) -->
+          <section id="skills" aria-labelledby="skills-h">
+            <h2 id="skills-h">Skills</h2>
+            <ul class="bumpers">
+              <li id="bumper-python" class="bumper"><span class="lbl">Python</span></li>
+              <li id="bumper-c" class="bumper"><span class="lbl">C</span></li>
+              <li id="bumper-java" class="bumper"><span class="lbl">Java</span></li>
+              <li id="bumper-kotlin" class="bumper"><span class="lbl">Kotlin</span></li>
+              <li id="bumper-rust" class="bumper"><span class="lbl">Rust</span></li>
+            </ul>
+            <p id="skills-also">Also: SQL · RISC-V · Git · Docker · GitLab</p>
+          </section>
+
+          <!-- Spoken languages (rollover lanes) -->
+          <section id="languages" aria-labelledby="languages-h">
+            <h2 id="languages-h">Languages</h2>
+            <ul class="lanes">
+              <li id="lane-en" class="lane">
+                <span class="full">English</span><span class="abbr" aria-hidden="true">EN</span
+                ><span class="lvl">C2</span>
+              </li>
+              <li id="lane-de" class="lane">
+                <span class="full">German</span><span class="abbr" aria-hidden="true">DE</span
+                ><span class="lvl">B2</span>
+              </li>
+              <li id="lane-ml" class="lane">
+                <span class="full">Malayalam</span><span class="abbr" aria-hidden="true">ML</span
+                ><span class="lvl">C2</span>
+              </li>
+              <li id="lane-hi" class="lane">
+                <span class="full">Hindi</span><span class="abbr" aria-hidden="true">HI</span
+                ><span class="lvl">B2</span>
+              </li>
+            </ul>
+          </section>
+
+          <p id="table-hint" class="table-only">Press start, or tap a card to read more.</p>
+
+          <!-- Contact (reader mode only; the backglass links cover it on the table) -->
+          <section id="contact" class="reader-only" aria-labelledby="contact-h">
+            <h2 id="contact-h">Contact</h2>
+            <!-- Light theme: the call to action. -->
+            <div class="light-only contact-cta">
+              <h2 class="heading-4">Let's talk.</h2>
+              <p class="body-3">Open to working student positions and internships in Germany.</p>
+              <div class="contact-actions">
+                <a class="btn btn-primary" href="#contact" data-mailto hidden
+                  ><svg class="ic" aria-hidden="true"><use href="#i-envelope" /></svg>Email</a
+                >
+                <a class="btn btn-ghost" href="https://github.com/vantablack2443" rel="me noopener"
+                  ><svg class="ic" aria-hidden="true"><use href="#i-github" /></svg>GitHub</a
+                >
+                <a class="btn btn-ghost" href="cv.pdf"
+                  ><svg class="ic" aria-hidden="true"><use href="#i-file-text" /></svg>CV (PDF)</a
+                >
+              </div>
+            </div>
+            <ul>
+              <li>GitHub: <a href="https://github.com/vantablack2443" rel="me noopener">github.com/vantablack2443</a></li>
+              <li class="js-only" id="contact-email" hidden>Email: <span class="email-slot"></span></li>
+              <li>CV: <a href="cv.pdf">cv.pdf</a></li>
+            </ul>
+          </section>
+        </main>
+
+        <!-- Apron -->
+        <footer id="apron-wrap" class="table-only">
+          <div id="apron" aria-hidden="true"></div>
+          <button id="btn-start" type="button"><svg class="ic" aria-hidden="true"><use href="#i-play" /></svg><span>Start</span></button>
+          <button id="btn-reader" type="button"><svg class="ic" aria-hidden="true"><use href="#i-book-open" /></svg><span>Read CV</span></button>
+        </footer>
+        <div id="plunger-zone" class="table-only" aria-hidden="true"></div>
+        <!-- Touch zones for the flippers (active while a game is running) -->
+        <div id="zone-left" class="zone table-only" aria-hidden="true"></div>
+        <div id="zone-right" class="zone table-only" aria-hidden="true"></div>
+
+        <!-- Moving parts (ball, flippers, plunger, sparks, debug overlay) -->
+        <canvas id="game-canvas" class="table-only" aria-hidden="true"></canvas>
+      </div>
+        </div>
+      </div>
+
+      <!-- Right panel: score display, project spotlight, controls -->
+      <aside id="panel-right" class="panel table-only" aria-label="Game panel">
+        <div id="hud" role="group" aria-label="Game status">
+          <div class="hud-cell hud-score"><span class="lbl">Score</span><output id="score">0000000</output></div>
+          <div class="hud-cell"><span class="lbl">Ball</span><output id="ball">1/3</output></div>
+          <div class="hud-cell"><span class="lbl">Bonus</span><output id="mult">1×</output></div>
+          <div class="hud-cell hud-hi"><span class="lbl">High</span><output id="hi">0000000</output></div>
+          <p id="message" role="status" aria-live="polite">PRESS START</p>
+          <p id="mission">Hit all six project cards, then spell the languages.</p>
+        </div>
+
+        <section id="spotlight" aria-labelledby="spot-h">
+          <h2 id="spot-h" class="caption-4 label">Project spotlight</h2>
+          <div id="spot-body"></div>
+        </section>
+
+        <section id="controls" aria-labelledby="ctl-h">
+          <h2 id="ctl-h" class="caption-4 label">Controls</h2>
+          <dl class="keys">
+            <div><dt>Left flipper</dt><dd><kbd>←</kbd><kbd>Z</kbd></dd></div>
+            <div><dt>Right flipper</dt><dd><kbd>→</kbd><kbd>/</kbd></dd></div>
+            <div><dt>Plunger</dt><dd><kbd>Space</kbd><kbd>↓</kbd></dd></div>
+            <div><dt>Pause, end</dt><dd><kbd>P</kbd><kbd>Esc</kbd></dd></div>
+          </dl>
+          <p class="body-6 dim touch-note">On a touch screen, hold the lower left or right half of the table, and hold the knob to launch.</p>
+          <div class="ctl-row">
+            <button id="btn-mute" class="btn btn-ghost" type="button" aria-pressed="false" aria-label="Sound is off. Turn sound on">
+              <svg class="ic ic-off" aria-hidden="true"><use href="#i-speaker-slash" /></svg>
+              <svg class="ic ic-on" aria-hidden="true"><use href="#i-speaker-high" /></svg>
+              <span class="mute-text">Sound off</span>
+            </button>
+            <button id="btn-theme" class="btn btn-ghost theme-toggle" type="button" data-theme-toggle data-target="light" aria-pressed="false">
+              <svg class="ic" aria-hidden="true"><use href="#i-sun" /></svg><span>Daylight</span>
+            </button>
+          </div>
+        </section>
+      </aside>
+
+      <footer id="lfooter" class="light-only">
+        <p class="caption-2">© 2026 Dipu Balamurugan · Built with Vite and a lot of pinball physics</p>
+        <button class="btn btn-ghost theme-toggle" type="button" data-theme-toggle data-target="dark" aria-pressed="false">
+          <svg class="ic" aria-hidden="true"><use href="#i-game-controller" /></svg><span>Arcade mode</span>
+        </button>
+      </footer>
+    </div>
+
+    <dialog id="modal" aria-labelledby="modal-title">
+      <form method="dialog" class="modal-close">
+        <button type="submit" aria-label="Close dialog">×</button>
+      </form>
+      <div id="modal-body"></div>
+    </dialog>
+
+    <noscript>
+      <p class="noscript">JavaScript is off, so the pinball table is disabled. The whole CV is readable here.</p>
+    </noscript>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
