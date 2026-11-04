@@ -1,3 +1,5 @@
+import { stripI18n } from './i18n';
+
 /**
  * Accessible dialog for project / education / experience details. Uses the
  * native <dialog>: showModal() gives a focus trap, Esc closes it, and focus
@@ -59,6 +61,7 @@ export class Modal {
     }
     this.body.replaceChildren(frag);
     this.body.querySelectorAll('[id]').forEach((n) => n.removeAttribute('id'));
+    stripI18n(this.body); // the dialog shows a snapshot of the page text in the current language
     h.id = 'modal-title';
 
     this.opener = opener ?? (document.activeElement as HTMLElement | null);

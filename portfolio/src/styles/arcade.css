@@ -72,6 +72,10 @@
     height: 100dvh;
     padding: var(--sp-24);
   }
+  /* the fixed top right cluster (16 px from the edges, 40 px high) sits above the right panel, never on the HUD */
+  [data-theme='dark'].table #panel-right {
+    margin-top: var(--sp-40);
+  }
 }
 @media (min-width: 1280px) and (orientation: landscape) {
   [data-theme='dark'].table #app {
@@ -409,7 +413,7 @@
 [data-theme='dark'].table #btn-mute {
   align-self: flex-start;
 }
-/* sound and theme toggles side by side */
+/* controls row (the sound toggle; the theme switch lives in the fixed top right cluster) */
 [data-theme='dark'].table .ctl-row {
   display: flex;
   flex-wrap: wrap;
@@ -428,6 +432,10 @@
 /* ---- narrow screens / portrait: stack. Name strip, score, table, then panels ---- */
 
 @media (max-width: 1023px), (orientation: portrait) {
+  /* the name strip starts below the fixed top right cluster */
+  [data-theme='dark'].table #app {
+    padding-top: var(--sp-64);
+  }
   [data-theme='dark'].table #panel-left,
   [data-theme='dark'].table #panel-right {
     display: contents;
@@ -1488,15 +1496,16 @@
 /* Small screens                                                       */
 /* ------------------------------------------------------------------ */
 
+/* at the bottom edge: the top right belongs to the language / back-to-site cluster */
 #small-banner {
   position: fixed;
-  top: 0;
+  bottom: 0;
   left: 0;
   right: 0;
   z-index: 100;
   padding: var(--sp-8) var(--sp-12);
   background: var(--bg-2);
-  border-bottom: 1px solid var(--bg-4);
+  border-top: 1px solid var(--bg-4);
   color: var(--fg);
   font-size: 14px;
   line-height: 20px;

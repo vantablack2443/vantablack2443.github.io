@@ -25,12 +25,20 @@ const CAP_MS = 400;
 
 export class Reveals {
   private io: IntersectionObserver | null = null;
-  private stops: Array<() => void> = [];
+  private tagStop: (() => void) | null = null;
 
   start(): void {
     this.reveals();
     this.tagline();
+    document.addEventListener('langchange', this.onLang);
   }
+
+  /** The tagline's words are replaced when the language changes: split them again and set the reveal state from the scroll position. */
+  private readonly onLang = (): void => {
+    this.tagStop?.();
+    this.tagStop = null;
+    this.tagline(true);
+  };
 
   private reveals(): void {
     if (typeof IntersectionObserver === 'undefined') return;
@@ -70,7 +78,7 @@ export class Reveals {
     pending.forEach((e) => this.io!.observe(e));
   }
 
-  private tagline(): void {
+  private tagline(instant = false): void {
     const p = document.getElementById('tagline-text');
     if (!p) return;
     // wrap words once (idempotent); the text itself is untouched
@@ -104,13 +112,20 @@ export class Reveals {
         w.classList.toggle('on', on);
       }
     };
-    this.stops.push(onFrameScroll(update));
+    // after a language change, fresh words that are already above the trigger line appear lit, without replaying the sweep
+    if (instant) words.forEach((w) => (w.style.transition = 'none'));
+    this.tagStop = onFrameScroll(update); // runs update() once straight away
+    if (instant) {
+      void p.offsetWidth;
+      words.forEach((w) => (w.style.transition = ''));
+    }
   }
 
   stop(): void {
+    document.removeEventListener('langchange', this.onLang);
     this.io?.disconnect();
     this.io = null;
-    this.stops.forEach((s) => s());
-    this.stops = [];
+    this.tagStop?.();
+    this.tagStop = null;
   }
 }

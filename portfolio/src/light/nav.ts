@@ -1,3 +1,5 @@
+import { t } from '../i18n';
+
 /**
  * Floating nav: current section indicator (IntersectionObserver) and the mobile
  * menu (full height panel, links arrive 60 ms apart; the CSS does the motion).
@@ -63,11 +65,15 @@ export class Nav {
   private menuSetup(): void {
     const { bar, btn, menu } = this;
     if (!bar || !btn || !menu) return;
+    const isOpen = (): boolean => bar.hasAttribute('data-open');
+    const label = (): void => {
+      btn.setAttribute('aria-label', isOpen() ? t('nav.closeMenu', 'Close menu') : t('nav.openMenu', 'Open menu'));
+    };
     const open = (): void => {
       bar.setAttribute('data-open', '');
       menu.removeAttribute('inert');
       btn.setAttribute('aria-expanded', 'true');
-      btn.setAttribute('aria-label', 'Close menu');
+      label();
       root.classList.add('menu-open');
       menu.querySelector<HTMLElement>('a')?.focus({ preventScroll: true });
     };
@@ -75,11 +81,10 @@ export class Nav {
       bar.removeAttribute('data-open');
       menu.setAttribute('inert', '');
       btn.setAttribute('aria-expanded', 'false');
-      btn.setAttribute('aria-label', 'Open menu');
+      label();
       root.classList.remove('menu-open');
       if (refocus) btn.focus({ preventScroll: true });
     };
-    const isOpen = (): boolean => bar.hasAttribute('data-open');
     const onBtn = (): void => (isOpen() ? close() : open());
     const onKey = (e: KeyboardEvent): void => {
       if (e.key === 'Escape' && isOpen()) close(true);
@@ -89,13 +94,15 @@ export class Nav {
       if ((e.target as HTMLElement).closest('a, button')) close();
     };
     const onResize = (): void => {
-      if (window.innerWidth >= 720 && isOpen()) close();
+      if (window.innerWidth >= 1000 && isOpen()) close();
     };
     btn.addEventListener('click', onBtn);
     menu.addEventListener('click', onMenuClick);
     window.addEventListener('keydown', onKey);
     window.addEventListener('resize', onResize);
+    document.addEventListener('langchange', label);
     this.stops.push(() => {
+      document.removeEventListener('langchange', label);
       btn.removeEventListener('click', onBtn);
       menu.removeEventListener('click', onMenuClick);
       window.removeEventListener('keydown', onKey);

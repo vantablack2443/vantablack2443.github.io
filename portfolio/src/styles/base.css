@@ -72,15 +72,10 @@
   display: none !important;
 }
 
-/* The dark reader bar also offers the theme switch (the HUD one only exists on the table). */
-#theme-reader {
-  display: none;
-}
-html[data-theme='dark']:not(.table) #theme-reader {
-  display: inline-flex;
-  margin: 0 0 var(--sp-24) var(--sp-8);
-  vertical-align: top;
-  min-height: 38px;
+/* German is swapped in by main.ts before first paint; until then the body stays hidden so no English frame
+   shows. The head script lifts the guard after a second at the latest, so a script failure never blanks the page. */
+html[lang='de']:not(.i18n-done) body {
+  opacity: 0;
 }
 
 *,
@@ -145,6 +140,96 @@ a:hover {
 button {
   font: inherit;
   color: inherit;
+}
+
+/* ---------------- language switch (EN | DE), shared by both themes ---------------- */
+
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 40px;
+  padding: var(--sp-2);
+  background: var(--bg-2);
+  border: 1px solid var(--bg-4);
+  border-radius: var(--r-full);
+}
+.lang-switch button {
+  min-width: 36px;
+  height: 32px;
+  padding: 0 var(--sp-8);
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--fg-2);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    background-color var(--t-color) var(--ease),
+    color var(--t-color) var(--ease),
+    transform var(--t-color) var(--ease);
+}
+html:not(.i18n-ready) .lang-switch button {
+  transition: none;
+}
+.lang-switch button:hover {
+  background: var(--bg-3);
+  color: var(--fg);
+}
+.lang-switch button:active {
+  transform: scale(0.96);
+}
+.lang-switch button[aria-pressed='true'] {
+  background: var(--bg-4);
+  color: #fff;
+}
+
+/* ---------------- dark theme: the fixed top right cluster (language + back to the site) ---------------- */
+
+#top-controls {
+  position: fixed;
+  top: var(--sp-16);
+  right: var(--sp-16);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+}
+/* the way back to the light site: a filled cream pill, the most visible control after Start */
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-8);
+  height: 40px;
+  padding: 0 var(--sp-16);
+  border: 1px solid #fffbf2;
+  border-radius: var(--r-full);
+  background: #fffbf2;
+  color: #14212b;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.12),
+    0 8px 24px rgb(0 0 0 / 0.5);
+  transition:
+    background-color var(--t-color) var(--ease),
+    border-color var(--t-color) var(--ease),
+    transform var(--t-color) var(--ease);
+}
+.btn-back:hover {
+  background: #fff;
+  border-color: #fff;
+  transform: translateY(-1px);
+}
+.btn-back:active {
+  transform: scale(0.98);
 }
 
 .ic {
@@ -282,6 +367,10 @@ html:not(.table) body {
   max-width: 46rem;
   margin: 0 auto;
   padding: var(--sp-24) var(--sp-16) var(--sp-64);
+}
+/* room for the fixed top right cluster above the reader bar */
+html[data-theme='dark']:not(.table) body {
+  padding-top: var(--sp-64);
 }
 
 /* things that only exist on the table */

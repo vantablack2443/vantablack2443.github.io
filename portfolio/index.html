@@ -1,23 +1,24 @@
 <!doctype html>
-<html lang="en" class="no-js" data-theme="dark">
+<html lang="en" class="no-js" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Dipu Balamurugan | Portfolio pinball table</title>
+    <title>Dipu Balamurugan | Portfolio</title>
     <meta
       name="description"
-      content="Dipu Balamurugan is a B.Sc. Informatik student at Saarland University (security, data networks, software engineering). Projects, education and skills, laid out as a playable pinball table."
+      content="Portfolio of Dipu Balamurugan, B.Sc. Informatik student at Saarland University: projects, education, skills and a playable pinball arcade."
+      data-i18n-attr="content:meta.description"
     />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Dipu Balamurugan | Portfolio pinball table" />
+    <meta property="og:title" content="Dipu Balamurugan | Portfolio" />
     <meta
       property="og:description"
-      content="A playable pinball table that holds the CV: six projects, education, experience, skills and languages."
+      content="Portfolio of a computer science student in Saarbrücken: six projects, education, experience and skills, plus a playable pinball arcade."
     />
     <!-- Relative for now; make it an absolute URL once the domain is known. -->
     <meta property="og:image" content="light/poster.jpg" />
-    <meta name="color-scheme" content="dark" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#EAF3FA" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,29 +26,27 @@
       href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <!-- Before first paint: pick the theme (saved choice, else the OS preference) and, in the dark theme,
-         the layout ("table" unless the visitor chose reader mode). Light never gets "table". -->
+    <!-- Before first paint: every visit starts in the light theme (the arcade is opt in, per visit) and picks
+         the language: the saved choice, else German when the browser prefers it, else English. In German the
+         body stays hidden (CSS) until main.ts has swapped the text in; the timer below is the safety net so a
+         script failure never leaves a blank page. -->
     <script>
       (function () {
         var d = document.documentElement;
-        var theme = null;
+        var lang = null;
         try {
-          theme = localStorage.getItem('theme');
+          lang = localStorage.getItem('lang');
         } catch (e) {}
-        if (theme !== 'light' && theme !== 'dark') {
-          theme = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        if (lang !== 'en' && lang !== 'de') {
+          var pref = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+          lang = /^de/i.test(pref) ? 'de' : 'en';
         }
-        var reader = false;
-        try {
-          reader = localStorage.getItem('portfolio-mode') === 'reader';
-        } catch (e) {}
-        d.setAttribute('data-theme', theme);
-        d.className = theme === 'dark' && !reader ? 'js table' : 'js';
-        var tc = document.querySelector('meta[name="theme-color"]');
-        if (tc) tc.setAttribute('content', theme === 'light' ? '#EAF3FA' : '#000000');
-        var cs = document.querySelector('meta[name="color-scheme"]');
-        if (cs) cs.setAttribute('content', theme);
-        if (theme === 'light') document.title = 'Dipu Balamurugan | Portfolio';
+        d.setAttribute('lang', lang);
+        d.setAttribute('data-theme', 'light');
+        d.className = 'js';
+        window.setTimeout(function () {
+          d.classList.add('i18n-done');
+        }, 1000);
       })();
     </script>
     <link rel="stylesheet" href="/src/styles/base.css" />
@@ -55,22 +54,23 @@
     <link rel="stylesheet" href="/src/styles/light.css" />
   </head>
   <body>
-    <a class="skip" href="#content">Skip to content</a>
+    <a class="skip" href="#content" data-i18n="nav.skip">Skip to content</a>
 
-    <button id="to-table" class="js-only reader-bar" type="button">Play the pinball table</button>
-    <button
-      id="theme-reader"
-      class="btn btn-ghost js-only theme-toggle"
-      type="button"
-      data-theme-toggle
-      data-target="light"
-      aria-pressed="false"
-    >
-      <svg class="ic" aria-hidden="true"><use href="#i-sun" /></svg><span>Daylight</span>
-    </button>
+    <!-- Dark theme (table and reader mode): one fixed cluster at the top right, language switch + the way back to the site. -->
+    <div id="top-controls" class="js-only dark-only">
+      <div class="lang-switch" role="group" aria-label="Language" data-i18n-attr="aria-label:lang.group">
+        <button type="button" lang="en" data-lang="en" aria-label="English" aria-pressed="true">EN</button>
+        <button type="button" lang="de" data-lang="de" aria-label="Deutsch" aria-pressed="false">DE</button>
+      </div>
+      <button id="btn-back" class="btn-back theme-toggle" type="button" data-theme-toggle data-target="light" aria-pressed="false">
+        <svg class="ic" aria-hidden="true"><use href="#i-sun" /></svg><span data-i18n="cta.back">Back to site</span>
+      </button>
+    </div>
+
+    <button id="to-table" class="js-only reader-bar" type="button" data-i18n="reader.toTable">Play the pinball table</button>
     <div id="small-banner" class="js-only" hidden>
-      Best played on a bigger screen — or
-      <button id="banner-read" type="button">read the CV</button>
+      <span data-i18n="banner.text">Best played on a bigger screen — or</span>
+      <button id="banner-read" type="button" data-i18n="banner.read">read the CV</button>
     </div>
 
     <!-- Phosphor icons (regular, MIT), inline so no icon font is loaded -->
@@ -91,30 +91,36 @@
     <div id="lbg" class="light-only" aria-hidden="true"></div>
 
     <header id="lnav" class="light-only">
-      <nav id="lnav-bar" aria-label="Primary">
-        <a class="lnav-brand title-3" href="#hero" aria-label="Dipu Balamurugan, back to the top">Dipu B.</a>
+      <nav id="lnav-bar" aria-label="Primary" data-i18n-attr="aria-label:nav.primary">
+        <a class="lnav-brand title-3" href="#hero" aria-label="Dipu Balamurugan, back to the top" data-i18n-attr="aria-label:nav.brand">Dipu B.</a>
         <ul class="lnav-links">
-          <li><a class="title-4" href="#projects" data-section="projects">Projects</a></li>
-          <li><a class="title-4" href="#sling-right" data-section="sling-right">Experience</a></li>
-          <li><a class="title-4" href="#skills" data-section="skills">Skills</a></li>
-          <li><a class="title-4" href="#contact" data-section="contact">Contact</a></li>
+          <li><a class="title-4" href="#projects" data-section="projects" data-i18n="nav.projects">Projects</a></li>
+          <li><a class="title-4" href="#sling-right" data-section="sling-right" data-i18n="nav.experience">Experience</a></li>
+          <li><a class="title-4" href="#skills" data-section="skills" data-i18n="nav.skills">Skills</a></li>
+          <li><a class="title-4" href="#contact" data-section="contact" data-i18n="nav.contact">Contact</a></li>
         </ul>
-        <button class="btn btn-ghost theme-toggle lnav-toggle" type="button" data-theme-toggle data-target="dark" aria-pressed="false">
-          <svg class="ic" aria-hidden="true"><use href="#i-game-controller" /></svg><span>Arcade mode</span>
-        </button>
-        <button id="lmenu-btn" class="lnav-menu-btn" type="button" aria-expanded="false" aria-controls="lmenu" aria-label="Open menu">
-          <span class="bars" aria-hidden="true"><i></i><i></i></span>
-        </button>
+        <div class="lnav-cluster">
+          <div class="lang-switch" role="group" aria-label="Language" data-i18n-attr="aria-label:lang.group">
+            <button type="button" lang="en" data-lang="en" aria-label="English" aria-pressed="true">EN</button>
+            <button type="button" lang="de" data-lang="de" aria-label="Deutsch" aria-pressed="false">DE</button>
+          </div>
+          <button class="btn btn-ghost theme-toggle lnav-toggle" type="button" data-theme-toggle data-target="dark" aria-pressed="false">
+            <svg class="ic" aria-hidden="true"><use href="#i-game-controller" /></svg><span data-i18n="cta.arcade">Play the arcade</span>
+          </button>
+          <button id="lmenu-btn" class="lnav-menu-btn" type="button" aria-expanded="false" aria-controls="lmenu" aria-label="Open menu" data-i18n-attr="aria-label:nav.openMenu">
+            <span class="bars" aria-hidden="true"><i></i><i></i></span>
+          </button>
+        </div>
       </nav>
       <div id="lmenu" inert>
         <ul>
-          <li style="--i: 0"><a class="heading-4" href="#projects">Projects</a></li>
-          <li style="--i: 1"><a class="heading-4" href="#sling-right">Experience</a></li>
-          <li style="--i: 2"><a class="heading-4" href="#skills">Skills</a></li>
-          <li style="--i: 3"><a class="heading-4" href="#contact">Contact</a></li>
+          <li style="--i: 0"><a class="heading-4" href="#projects" data-i18n="nav.projects">Projects</a></li>
+          <li style="--i: 1"><a class="heading-4" href="#sling-right" data-i18n="nav.experience">Experience</a></li>
+          <li style="--i: 2"><a class="heading-4" href="#skills" data-i18n="nav.skills">Skills</a></li>
+          <li style="--i: 3"><a class="heading-4" href="#contact" data-i18n="nav.contact">Contact</a></li>
           <li style="--i: 4">
             <button class="btn btn-ghost theme-toggle" type="button" data-theme-toggle data-target="dark" aria-pressed="false">
-              <svg class="ic" aria-hidden="true"><use href="#i-game-controller" /></svg><span>Arcade mode</span>
+              <svg class="ic" aria-hidden="true"><use href="#i-game-controller" /></svg><span data-i18n="cta.arcade">Play the arcade</span>
             </button>
           </li>
         </ul>
@@ -123,19 +129,22 @@
 
     <div id="app">
       <!-- Left panel: the machine's backglass -->
-      <aside id="panel-left" class="panel" aria-label="About Dipu">
+      <aside id="panel-left" class="panel" aria-label="About Dipu" data-i18n-attr="aria-label:panel.about">
         <header id="backglass">
           <h1 id="name" class="heading-2">Dipu Balamurugan</h1>
-          <p id="tagline" class="body-5">
+          <p id="tagline" class="body-5" data-i18n="panel.tagline">
             B.Sc. Informatik @ Saarland University — Security · Data Networks · Software Engineering
           </p>
-          <p id="sub" class="body-6">Saarbrücken, Germany<span class="msc"> · M.Sc. Informatik place secured</span></p>
+          <p id="sub" class="body-6">
+            <span data-i18n="panel.place">Saarbrücken, Germany</span
+            ><span class="msc" data-i18n="panel.msc"> · M.Sc. Informatik place secured</span>
+          </p>
           <nav id="links" aria-label="Links">
             <a id="link-github" class="btn btn-ghost" href="https://github.com/vantablack2443" rel="me noopener"
               ><svg class="ic" aria-hidden="true"><use href="#i-github" /></svg>GitHub</a
             >
             <a id="link-email" class="btn btn-ghost" href="#contact" hidden
-              ><svg class="ic" aria-hidden="true"><use href="#i-envelope" /></svg>Email</a
+              ><svg class="ic" aria-hidden="true"><use href="#i-envelope" /></svg><span data-i18n="link.email">Email</span></a
             >
             <a id="link-cv" class="btn btn-ghost" href="cv.pdf"
               ><svg class="ic" aria-hidden="true"><use href="#i-file-text" /></svg>CV (PDF)</a
@@ -147,28 +156,31 @@
              originals live in <main> below (slingshots, bumpers, lanes). -->
         <div id="panel-sections" class="table-only" aria-hidden="true">
           <section class="ps">
-            <h2 class="caption-4 label">Education</h2>
-            <p class="body-6"><strong>B.Sc. Informatik</strong>, Saarland University</p>
-            <p class="body-6 dim">Apr 2023 – present · 130+ ECTS · M.Sc. place secured</p>
-            <p class="body-6"><strong>Studienkolleg Jena</strong>, T-Kurs (2,2), Apr 2022 – Jan 2023</p>
+            <h2 class="caption-4 label" data-i18n="sec.education">Education</h2>
+            <p class="body-6" data-i18n-html="ps.edu.uds"><strong>B.Sc. Informatik</strong>, Saarland University</p>
+            <p class="body-6 dim" data-i18n="ps.edu.dates">Apr 2023 – present · 130+ ECTS · M.Sc. place secured</p>
+            <p class="body-6" data-i18n-html="ps.edu.kolleg"><strong>Studienkolleg Jena</strong>, T-Kurs (2,2), Apr 2022 – Jan 2023</p>
           </section>
           <section class="ps">
-            <h2 class="caption-4 label">Experience</h2>
-            <p class="body-6"><strong>HiWi</strong>, Campus Library Informatik + Mathematik</p>
-            <p class="body-6 dim">Max Planck Institute for Informatics · Apr 2024 – present</p>
-            <p class="body-6 dim">Tech support, GIMP digitisation, Python plugins.</p>
+            <h2 class="caption-4 label" data-i18n="sec.experience">Experience</h2>
+            <p class="body-6" data-i18n-html="ps.exp.role"><strong>HiWi</strong>, Campus Library Informatik + Mathematik</p>
+            <p class="body-6 dim" data-i18n="ps.exp.where">Max Planck Institute for Informatics · Apr 2024 – present</p>
+            <p class="body-6 dim" data-i18n="ps.exp.what">Tech support, GIMP digitisation, Python plugins.</p>
           </section>
           <section class="ps">
-            <h2 class="caption-4 label">Skills</h2>
+            <h2 class="caption-4 label" data-i18n="sec.skills">Skills</h2>
             <ul class="chips mono">
               <li>Python</li><li>C</li><li>Java</li><li>Kotlin</li><li>Rust</li>
               <li>SQL</li><li>RISC-V</li><li>Git</li><li>Docker</li><li>GitLab</li>
             </ul>
           </section>
           <section class="ps">
-            <h2 class="caption-4 label">Languages</h2>
+            <h2 class="caption-4 label" data-i18n="sec.languages">Languages</h2>
             <ul class="chips mono">
-              <li>English C2</li><li>German B2</li><li>Malayalam C2</li><li>Hindi B2</li>
+              <li><span data-i18n="lang.en">English</span> C2</li>
+              <li><span data-i18n="lang.de">German</span> B2</li>
+              <li><span data-i18n="lang.ml">Malayalam</span> C2</li>
+              <li><span data-i18n="lang.hi">Hindi</span> B2</li>
             </ul>
           </section>
         </div>
@@ -177,33 +189,35 @@
       <!-- Light theme: hero in the calm sky, then the tagline reveal -->
       <section id="hero" class="light-only" aria-labelledby="hero-h">
         <div class="hero-inner">
-          <p class="hero-chip caption-3">B.Sc. Informatik · Saarland University</p>
+          <p class="hero-chip caption-3" data-i18n="hero.chip">B.Sc. Informatik · Saarland University</p>
           <h1 id="hero-h" class="heading-1 hero-title">
-            <span class="hl">I build software</span> <span class="hl">from the processor up.</span>
+            <span class="hl" data-i18n="hero.title">Hey, I’m Dipu.</span>
           </h1>
-          <p class="hero-sub body-3">
-            Computer science student in Saarbrücken, focused on security, data networks and software
-            engineering. I like knowing what every layer underneath is doing.
+          <p class="hero-sub body-3" data-i18n="hero.sub">
+            Computer science student in Saarbrücken. I build software from the processor up, with a focus on
+            security, data networks and software engineering.
           </p>
           <div class="hero-cta">
-            <a class="btn btn-primary" href="#projects">See my projects</a>
-            <button class="btn btn-ghost" type="button" data-theme-toggle data-target="dark" aria-pressed="false">
+            <a class="btn btn-primary" href="#projects" data-i18n="hero.cta">See my projects</a>
+            <button class="btn btn-ghost" type="button" data-theme-toggle data-target="dark" aria-pressed="false" data-i18n="cta.arcade">
               Play the arcade
             </button>
           </div>
           <p class="hero-proof caption-2">
-            <span>130+ ECTS ·</span> <span>M.Sc. place secured ·</span> <span>HiWi at MPI for Informatics</span>
+            <span data-i18n="hero.proof.ects">130+ ECTS ·</span>
+            <span data-i18n="hero.proof.msc">M.Sc. place secured ·</span>
+            <span data-i18n="hero.proof.hiwi">HiWi at MPI for Informatics</span>
           </p>
         </div>
-        <a class="hero-scroll caption-3" href="#projects" aria-label="Scroll to the projects">
-          <span>Scroll</span><svg class="ic" aria-hidden="true"><use href="#i-arrow-down" /></svg>
+        <a class="hero-scroll caption-3" href="#projects" aria-label="Scroll to the projects" data-i18n-attr="aria-label:hero.scrollAria">
+          <span data-i18n="hero.scroll">Scroll</span><svg class="ic" aria-hidden="true"><use href="#i-arrow-down" /></svg>
         </a>
       </section>
 
-      <section id="tagline-band" class="light-only" aria-label="In one line">
+      <section id="tagline-band" class="light-only" aria-label="In one line" data-i18n-attr="aria-label:tagline.aria">
         <p id="tagline-text" class="tagline heading-2">
-          <span class="tl-line">From MIPS registers to multi-agent AI,</span>
-          <span class="tl-line">I like building the whole stack.</span>
+          <span class="tl-line" data-i18n="tagline.1">From MIPS registers to multi-agent AI,</span>
+          <span class="tl-line" data-i18n="tagline.2">I like building the whole stack.</span>
         </p>
       </section>
 
@@ -216,88 +230,88 @@
         <main id="content">
           <!-- Education (left slingshot) -->
           <section id="sling-left" class="sling" aria-labelledby="edu-h">
-            <h2 id="edu-h"><span class="full">Education</span></h2>
+            <h2 id="edu-h"><span class="full" data-i18n="sec.education">Education</span></h2>
             <p class="tag" aria-hidden="true"><b>B.Sc.</b><span>UdS</span></p>
             <div class="detail">
-              <p class="stack">Saarland University &amp; Studienkolleg Jena</p>
+              <p class="stack" data-i18n="edu.stack">Saarland University &amp; Studienkolleg Jena</p>
               <ul>
-                <li>
+                <li data-i18n-html="edu.uds">
                   <strong>B.Sc. Informatik</strong>, Saarland University — Apr 2023 – present. 130+ ECTS,
                   expected graduation by Sep 2027. M.Sc. Informatik place secured.
                 </li>
-                <li>
+                <li data-i18n-html="edu.kolleg">
                   <strong>Studienkolleg Jena</strong> (T-Kurs, grade 2,2) — Apr 2022 – Jan 2023.
                 </li>
               </ul>
             </div>
-            <button class="open" type="button" aria-haspopup="dialog">Details: Education</button>
+            <button class="open" type="button" aria-haspopup="dialog" data-i18n="edu.open">Details: Education</button>
           </section>
 
           <!-- Experience (right slingshot) -->
           <section id="sling-right" class="sling" aria-labelledby="exp-h">
-            <h2 id="exp-h"><span class="full">Experience</span></h2>
+            <h2 id="exp-h"><span class="full" data-i18n="sec.experience">Experience</span></h2>
             <p class="tag" aria-hidden="true"><b>HiWi</b><span>MPI-INF</span></p>
             <div class="detail">
-              <p class="stack">HiWi, Campus Library Informatik + Mathematik (Max Planck Institute for Informatics)</p>
+              <p class="stack" data-i18n="exp.stack">HiWi, Campus Library Informatik + Mathematik (Max Planck Institute for Informatics)</p>
               <ul>
-                <li>Apr 2024 – present.</li>
-                <li>Front-desk tech support for library users.</li>
-                <li>Digitisation of materials with GIMP.</li>
-                <li>Wrote Python scripts and plugins that automate the GIMP digitisation workflow.</li>
+                <li data-i18n="exp.1">Apr 2024 – present.</li>
+                <li data-i18n="exp.2">Front-desk tech support for library users.</li>
+                <li data-i18n="exp.3">Digitisation of materials with GIMP.</li>
+                <li data-i18n="exp.4">Wrote Python scripts and plugins that automate the GIMP digitisation workflow.</li>
               </ul>
             </div>
-            <button class="open" type="button" aria-haspopup="dialog">Details: Experience</button>
+            <button class="open" type="button" aria-haspopup="dialog" data-i18n="exp.open">Details: Experience</button>
           </section>
 
           <!-- Projects (cards) -->
           <section id="projects" aria-labelledby="projects-h">
-            <h2 id="projects-h">Projects</h2>
+            <h2 id="projects-h" data-i18n="sec.projects">Projects</h2>
 
             <article id="card-orion" class="card" data-neon="pink">
-              <h3><span class="t">Orion</span><span class="sub"> — Multi-Agent AI Platform</span></h3>
+              <h3><span class="t">Orion</span><span class="sub" data-i18n="proj.orion.sub"> — Multi-Agent AI Platform</span></h3>
               <p class="stack">Next.js · TypeScript · Gemini API</p>
-              <p class="sum">Solo hackathon build: 10 AI agents for enterprise workflows.</p>
+              <p class="sum" data-i18n="proj.orion.sum">Solo hackathon build: 10 AI agents for enterprise workflows.</p>
               <div class="detail">
                 <ul>
-                  <li>
+                  <li data-i18n="proj.orion.1">
                     Built solo at the MonaAI Hackathon: 10 domain-specific agents for enterprise workflows
                     (document validation, HR shift replacement, CV fraud detection, pricing).
                   </li>
-                  <li>
+                  <li data-i18n="proj.orion.2">
                     Designed the prompts for each agent on Gemini 2.5 Flash, e.g. an invoice agent that
                     extracts invoice details, routes them to the right department and summarises the action
                     needed.
                   </li>
-                  <li>
+                  <li data-i18n="proj.orion.3">
                     Built the document upload pipeline (PDF, DOCX, images) into the model, with a Next.js 14
                     and Tailwind frontend.
                   </li>
                 </ul>
                 <p class="links">
-                  <a href="https://github.com/vantablack2443/MonaAI-Hackathon" rel="noopener">Orion on GitHub</a>
+                  <a href="https://github.com/vantablack2443/MonaAI-Hackathon" rel="noopener" data-i18n="proj.orion.link">Orion on GitHub</a>
                 </p>
               </div>
               <button class="open" type="button" aria-haspopup="dialog">Details: Orion</button>
             </article>
 
             <article id="card-saardew" class="card" data-neon="cyan">
-              <h3><span class="t">Saardew</span><span class="sub"> — Farming Simulation</span></h3>
+              <h3><span class="t">Saardew</span><span class="sub" data-i18n="proj.saardew.sub"> — Farming Simulation</span></h3>
               <p class="stack">Kotlin · Gradle · Detekt · JaCoCo</p>
-              <p class="sum">Team tick-based farming sim, UML-first, tested and analysed.</p>
+              <p class="sum" data-i18n="proj.saardew.sum">Team tick-based farming sim, UML-first, tested and analysed.</p>
               <div class="detail">
                 <ul>
-                  <li>Built a tick-based simulation as a team in the Softwarepraktikum at Saarland University.</li>
-                  <li>
+                  <li data-i18n="proj.saardew.1">Built a tick-based simulation as a team in the Softwarepraktikum at Saarland University.</li>
+                  <li data-i18n="proj.saardew.2">
                     Started with UML design, split the work by modules, and adapted the implementation when the
                     requirements changed mid-project.
                   </li>
-                  <li>
+                  <li data-i18n="proj.saardew.3">
                     Reviewed each other's code and used unit and system tests plus static analysis (Detekt) and
                     coverage (JaCoCo) for code quality.
                   </li>
                 </ul>
                 <p class="links">
-                  <a href="https://github.com/vantablack2443/FarmingSimulation_Kotlin" rel="noopener"
+                  <a href="https://github.com/vantablack2443/FarmingSimulation_Kotlin" rel="noopener" data-i18n="proj.saardew.link"
                     >Saardew on GitHub</a
                   >
                 </p>
@@ -306,60 +320,60 @@
             </article>
 
             <article id="card-2048" class="card" data-neon="amber">
-              <h3><span class="t">2048 + CPU</span><span class="sub"> — 2048 with a CPU player</span></h3>
+              <h3><span class="t">2048 + CPU</span><span class="sub" data-i18n="proj.2048.sub"> — 2048 with a CPU player</span></h3>
               <p class="stack">Java · OOP · TDD</p>
-              <p class="sum">Test-first game logic plus a heuristic CPU player.</p>
+              <p class="sum" data-i18n="proj.2048.sum">Test-first game logic plus a heuristic CPU player.</p>
               <div class="detail">
                 <ul>
-                  <li>
+                  <li data-i18n="proj.2048.1">
                     Wrote tests for the game logic first, then implemented it: tile-merging, scoring and
                     game-state management.
                   </li>
-                  <li>Structured the game logic using object-oriented principles.</li>
-                  <li>
+                  <li data-i18n="proj.2048.2">Structured the game logic using object-oriented principles.</li>
+                  <li data-i18n="proj.2048.3">
                     Added a CPU player that chooses moves by heuristic evaluation (e.g. maximising free tiles,
                     keeping the highest tile in a corner).
                   </li>
                 </ul>
                 <p class="links">
-                  <a href="https://github.com/vantablack2443/Java_2048-Game" rel="noopener">2048 on GitHub</a>
+                  <a href="https://github.com/vantablack2443/Java_2048-Game" rel="noopener" data-i18n="proj.2048.link">2048 on GitHub</a>
                 </p>
               </div>
               <button class="open" type="button" aria-haspopup="dialog">Details: 2048 + CPU</button>
             </article>
 
             <article id="card-pagerank" class="card" data-neon="lime">
-              <h3><span class="t">PageRank</span><span class="sub"> — PageRank in C</span></h3>
+              <h3><span class="t">PageRank</span><span class="sub" data-i18n="proj.pagerank.sub"> — PageRank in C</span></h3>
               <p class="stack">C · Graphs</p>
-              <p class="sum">Random-surfer PageRank on memory-efficient graphs.</p>
+              <p class="sum" data-i18n="proj.pagerank.sum">Random-surfer PageRank on memory-efficient graphs.</p>
               <div class="detail">
                 <ul>
-                  <li>
+                  <li data-i18n="proj.pagerank.1">
                     Implemented Google's PageRank algorithm from scratch in C to analyse graph-based link
                     structures.
                   </li>
-                  <li>Built graph traversal, iterative rank computation and convergence checks.</li>
-                  <li>Focused on memory-efficient data structures for larger graph datasets.</li>
+                  <li data-i18n="proj.pagerank.2">Built graph traversal, iterative rank computation and convergence checks.</li>
+                  <li data-i18n="proj.pagerank.3">Focused on memory-efficient data structures for larger graph datasets.</li>
                 </ul>
                 <p class="links">
-                  <a href="https://github.com/vantablack2443/C_PageRank" rel="noopener">PageRank on GitHub</a>
+                  <a href="https://github.com/vantablack2443/C_PageRank" rel="noopener" data-i18n="proj.pagerank.link">PageRank on GitHub</a>
                 </p>
               </div>
               <button class="open" type="button" aria-haspopup="dialog">Details: PageRank</button>
             </article>
 
             <article id="card-edge" class="card" data-neon="cyan">
-              <h3><span class="t">Edge Detect</span><span class="sub"> — Edge Detection in C</span></h3>
+              <h3><span class="t">Edge Detect</span><span class="sub" data-i18n="proj.edge.sub"> — Edge Detection in C</span></h3>
               <p class="stack">C · Image Processing</p>
-              <p class="sum">Gaussian blur, gradients, magnitude, thresholding.</p>
+              <p class="sum" data-i18n="proj.edge.sum">Gaussian blur, gradients, magnitude, thresholding.</p>
               <div class="detail">
                 <ul>
-                  <li>Implemented edge-detection techniques to find object boundaries in digital images.</li>
-                  <li>Processed pixel-level image data and applied filtering operations to extract features.</li>
-                  <li>Worked with low-level memory management and performance-oriented C.</li>
+                  <li data-i18n="proj.edge.1">Implemented edge-detection techniques to find object boundaries in digital images.</li>
+                  <li data-i18n="proj.edge.2">Processed pixel-level image data and applied filtering operations to extract features.</li>
+                  <li data-i18n="proj.edge.3">Worked with low-level memory management and performance-oriented C.</li>
                 </ul>
                 <p class="links">
-                  <a href="https://github.com/vantablack2443/Edge-Detection_C" rel="noopener"
+                  <a href="https://github.com/vantablack2443/Edge-Detection_C" rel="noopener" data-i18n="proj.edge.link"
                     >Edge Detection on GitHub</a
                   >
                 </p>
@@ -368,22 +382,22 @@
             </article>
 
             <article id="card-mips" class="card" data-neon="pink">
-              <h3><span class="t">MIPS R-P-S</span><span class="sub"> — Rock-Paper-Scissors in MIPS</span></h3>
+              <h3><span class="t">MIPS R-P-S</span><span class="sub" data-i18n="proj.mips.sub"> — Rock-Paper-Scissors in MIPS</span></h3>
               <p class="stack">MIPS Assembly</p>
-              <p class="sum">Full interactive game in assembly: state, input, scoring.</p>
+              <p class="sum" data-i18n="proj.mips.sum">Full interactive game in assembly: state, input, scoring.</p>
               <div class="detail">
                 <ul>
-                  <li>
+                  <li data-i18n="proj.mips.1">
                     Implemented an interactive game entirely in MIPS assembly: game state, user input,
                     branching logic and score tracking.
                   </li>
-                  <li>
+                  <li data-i18n="proj.mips.2">
                     Gained practice in processor architecture, low-level execution flow and assembly-level
                     debugging.
                   </li>
                 </ul>
                 <p class="links">
-                  <a href="https://github.com/vantablack2443/MIPS---RockPaperScissors" rel="noopener"
+                  <a href="https://github.com/vantablack2443/MIPS---RockPaperScissors" rel="noopener" data-i18n="proj.mips.link"
                     >Rock-Paper-Scissors in MIPS on GitHub</a
                   >
                 </p>
@@ -392,16 +406,14 @@
             </article>
 
             <div id="more-projects" class="more-projects">
-              <h3>More</h3>
+              <h3 data-i18n="more.title">More</h3>
               <ul>
                 <li>
-                  <a href="https://github.com/vantablack2443/django-fame-system" rel="noopener">Django Web App</a>
-                  — Django ORM database operations, external REST API integration, HTML/CSS frontend pages
-                  (course project).
-                </li>
-                <li>
-                  <a href="https://github.com/vantablack2443/Rustbook-Notes" rel="noopener">Rust Book notes</a>
-                  — notes and exercises from working through the Rust book.
+                  <a href="https://github.com/vantablack2443/django-fame-system" rel="noopener">Django Web App</a
+                  ><span data-i18n="more.django">
+                    — Django ORM database operations, external REST API integration, HTML/CSS frontend pages
+                    (course project).</span
+                  >
                 </li>
               </ul>
             </div>
@@ -409,7 +421,7 @@
 
           <!-- Skills (pop bumpers) -->
           <section id="skills" aria-labelledby="skills-h">
-            <h2 id="skills-h">Skills</h2>
+            <h2 id="skills-h" data-i18n="sec.skills">Skills</h2>
             <ul class="bumpers">
               <li id="bumper-python" class="bumper"><span class="lbl">Python</span></li>
               <li id="bumper-c" class="bumper"><span class="lbl">C</span></li>
@@ -417,44 +429,44 @@
               <li id="bumper-kotlin" class="bumper"><span class="lbl">Kotlin</span></li>
               <li id="bumper-rust" class="bumper"><span class="lbl">Rust</span></li>
             </ul>
-            <p id="skills-also">Also: SQL · RISC-V · Git · Docker · GitLab</p>
+            <p id="skills-also"><span data-i18n="skills.also">Also:</span> SQL · RISC-V · Git · Docker · GitLab</p>
           </section>
 
           <!-- Spoken languages (rollover lanes) -->
           <section id="languages" aria-labelledby="languages-h">
-            <h2 id="languages-h">Languages</h2>
+            <h2 id="languages-h" data-i18n="sec.languages">Languages</h2>
             <ul class="lanes">
               <li id="lane-en" class="lane">
-                <span class="full">English</span><span class="abbr" aria-hidden="true">EN</span
+                <span class="full" data-i18n="lang.en">English</span><span class="abbr" aria-hidden="true">EN</span
                 ><span class="lvl">C2</span>
               </li>
               <li id="lane-de" class="lane">
-                <span class="full">German</span><span class="abbr" aria-hidden="true">DE</span
+                <span class="full" data-i18n="lang.de">German</span><span class="abbr" aria-hidden="true">DE</span
                 ><span class="lvl">B2</span>
               </li>
               <li id="lane-ml" class="lane">
-                <span class="full">Malayalam</span><span class="abbr" aria-hidden="true">ML</span
+                <span class="full" data-i18n="lang.ml">Malayalam</span><span class="abbr" aria-hidden="true">ML</span
                 ><span class="lvl">C2</span>
               </li>
               <li id="lane-hi" class="lane">
-                <span class="full">Hindi</span><span class="abbr" aria-hidden="true">HI</span
+                <span class="full" data-i18n="lang.hi">Hindi</span><span class="abbr" aria-hidden="true">HI</span
                 ><span class="lvl">B2</span>
               </li>
             </ul>
           </section>
 
-          <p id="table-hint" class="table-only">Press start, or tap a card to read more.</p>
+          <p id="table-hint" class="table-only" data-i18n="table.hint">Press start, or tap a card to read more.</p>
 
           <!-- Contact (reader mode only; the backglass links cover it on the table) -->
           <section id="contact" class="reader-only" aria-labelledby="contact-h">
-            <h2 id="contact-h">Contact</h2>
+            <h2 id="contact-h" data-i18n="sec.contact">Contact</h2>
             <!-- Light theme: the call to action. -->
             <div class="light-only contact-cta">
-              <h2 class="heading-4">Let's talk.</h2>
-              <p class="body-3">Open to working student positions and internships in Germany.</p>
+              <h2 class="heading-4" data-i18n="contact.title">Let's talk.</h2>
+              <p class="body-3" data-i18n="contact.sub">Open to working student positions and internships in Germany.</p>
               <div class="contact-actions">
                 <a class="btn btn-primary" href="#contact" data-mailto hidden
-                  ><svg class="ic" aria-hidden="true"><use href="#i-envelope" /></svg>Email</a
+                  ><svg class="ic" aria-hidden="true"><use href="#i-envelope" /></svg><span data-i18n="link.email">Email</span></a
                 >
                 <a class="btn btn-ghost" href="https://github.com/vantablack2443" rel="me noopener"
                   ><svg class="ic" aria-hidden="true"><use href="#i-github" /></svg>GitHub</a
@@ -466,7 +478,7 @@
             </div>
             <ul>
               <li>GitHub: <a href="https://github.com/vantablack2443" rel="me noopener">github.com/vantablack2443</a></li>
-              <li class="js-only" id="contact-email" hidden>Email: <span class="email-slot"></span></li>
+              <li class="js-only" id="contact-email" hidden><span data-i18n="contact.emailLabel">Email:</span> <span class="email-slot"></span></li>
               <li>CV: <a href="cv.pdf">cv.pdf</a></li>
             </ul>
           </section>
@@ -475,8 +487,8 @@
         <!-- Apron -->
         <footer id="apron-wrap" class="table-only">
           <div id="apron" aria-hidden="true"></div>
-          <button id="btn-start" type="button"><svg class="ic" aria-hidden="true"><use href="#i-play" /></svg><span>Start</span></button>
-          <button id="btn-reader" type="button"><svg class="ic" aria-hidden="true"><use href="#i-book-open" /></svg><span>Read CV</span></button>
+          <button id="btn-start" type="button"><svg class="ic" aria-hidden="true"><use href="#i-play" /></svg><span data-i18n="btn.start">Start</span></button>
+          <button id="btn-reader" type="button"><svg class="ic" aria-hidden="true"><use href="#i-book-open" /></svg><span data-i18n="btn.readCv">Read CV</span></button>
         </footer>
         <div id="plunger-zone" class="table-only" aria-hidden="true"></div>
         <!-- Touch zones for the flippers (active while a game is running) -->
@@ -490,54 +502,51 @@
       </div>
 
       <!-- Right panel: score display, project spotlight, controls -->
-      <aside id="panel-right" class="panel table-only" aria-label="Game panel">
-        <div id="hud" role="group" aria-label="Game status">
-          <div class="hud-cell hud-score"><span class="lbl">Score</span><output id="score">0000000</output></div>
+      <aside id="panel-right" class="panel table-only" aria-label="Game panel" data-i18n-attr="aria-label:panel.game">
+        <div id="hud" role="group" aria-label="Game status" data-i18n-attr="aria-label:hud.aria">
+          <div class="hud-cell hud-score"><span class="lbl" data-i18n="hud.score">Score</span><output id="score">0000000</output></div>
           <div class="hud-cell"><span class="lbl">Ball</span><output id="ball">1/3</output></div>
           <div class="hud-cell"><span class="lbl">Bonus</span><output id="mult">1×</output></div>
-          <div class="hud-cell hud-hi"><span class="lbl">High</span><output id="hi">0000000</output></div>
+          <div class="hud-cell hud-hi"><span class="lbl" data-i18n="hud.high">High</span><output id="hi">0000000</output></div>
           <p id="message" role="status" aria-live="polite">PRESS START</p>
-          <p id="mission">Hit all six project cards, then spell the languages.</p>
+          <p id="mission" data-i18n="hud.mission">Hit all six project cards, then light all four language lanes.</p>
         </div>
 
         <section id="spotlight" aria-labelledby="spot-h">
-          <h2 id="spot-h" class="caption-4 label">Project spotlight</h2>
+          <h2 id="spot-h" class="caption-4 label" data-i18n="spot.title">Project spotlight</h2>
           <div id="spot-body"></div>
         </section>
 
         <section id="controls" aria-labelledby="ctl-h">
-          <h2 id="ctl-h" class="caption-4 label">Controls</h2>
+          <h2 id="ctl-h" class="caption-4 label" data-i18n="ctl.title">Controls</h2>
           <dl class="keys">
-            <div><dt>Left flipper</dt><dd><kbd>←</kbd><kbd>Z</kbd></dd></div>
-            <div><dt>Right flipper</dt><dd><kbd>→</kbd><kbd>/</kbd></dd></div>
-            <div><dt>Plunger</dt><dd><kbd>Space</kbd><kbd>↓</kbd></dd></div>
-            <div><dt>Pause, end</dt><dd><kbd>P</kbd><kbd>Esc</kbd></dd></div>
+            <div><dt data-i18n="ctl.left">Left flipper</dt><dd><kbd>←</kbd><kbd>Z</kbd></dd></div>
+            <div><dt data-i18n="ctl.right">Right flipper</dt><dd><kbd>→</kbd><kbd>/</kbd></dd></div>
+            <div><dt>Plunger</dt><dd><kbd data-i18n="ctl.space">Space</kbd><kbd>↓</kbd></dd></div>
+            <div><dt data-i18n="ctl.pause">Pause, end</dt><dd><kbd>P</kbd><kbd>Esc</kbd></dd></div>
           </dl>
-          <p class="body-6 dim touch-note">On a touch screen, hold the lower left or right half of the table, and hold the knob to launch.</p>
+          <p class="body-6 dim touch-note" data-i18n="ctl.touch">On a touch screen, hold the lower left or right half of the table, and hold the knob to launch.</p>
           <div class="ctl-row">
-            <button id="btn-mute" class="btn btn-ghost" type="button" aria-pressed="false" aria-label="Sound is off. Turn sound on">
+            <button id="btn-mute" class="btn btn-ghost" type="button" aria-pressed="false" aria-label="Sound is off. Turn sound on" data-i18n-attr="aria-label:sound.offAria">
               <svg class="ic ic-off" aria-hidden="true"><use href="#i-speaker-slash" /></svg>
               <svg class="ic ic-on" aria-hidden="true"><use href="#i-speaker-high" /></svg>
-              <span class="mute-text">Sound off</span>
-            </button>
-            <button id="btn-theme" class="btn btn-ghost theme-toggle" type="button" data-theme-toggle data-target="light" aria-pressed="false">
-              <svg class="ic" aria-hidden="true"><use href="#i-sun" /></svg><span>Daylight</span>
+              <span class="mute-text" data-i18n="sound.off">Sound off</span>
             </button>
           </div>
         </section>
       </aside>
 
       <footer id="lfooter" class="light-only">
-        <p class="caption-2">© 2026 Dipu Balamurugan · Built with Vite and a lot of pinball physics</p>
+        <p class="caption-2" data-i18n="footer.text">© 2026 Dipu Balamurugan · Built with Vite and a lot of pinball physics</p>
         <button class="btn btn-ghost theme-toggle" type="button" data-theme-toggle data-target="dark" aria-pressed="false">
-          <svg class="ic" aria-hidden="true"><use href="#i-game-controller" /></svg><span>Arcade mode</span>
+          <svg class="ic" aria-hidden="true"><use href="#i-game-controller" /></svg><span data-i18n="cta.arcade">Play the arcade</span>
         </button>
       </footer>
     </div>
 
     <dialog id="modal" aria-labelledby="modal-title">
       <form method="dialog" class="modal-close">
-        <button type="submit" aria-label="Close dialog">×</button>
+        <button type="submit" aria-label="Close dialog" data-i18n-attr="aria-label:modal.close">×</button>
       </form>
       <div id="modal-body"></div>
     </dialog>

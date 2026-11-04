@@ -141,7 +141,7 @@
 /* Things that exist for the dark theme only */
 :root[data-theme='light'] #panel-left,
 :root[data-theme='light'] #to-table,
-:root[data-theme='light'] #theme-reader,
+:root[data-theme='light'] #top-controls,
 :root[data-theme='light'] #small-banner {
   display: none !important;
 }
@@ -297,7 +297,8 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Floating nav                                                        */
+/* Floating nav: a bar across the content width. Wordmark left, section */
+/* links in the middle, the cluster (EN | DE, Play the arcade) right.   */
 /* ------------------------------------------------------------------ */
 
 :root[data-theme='light'] #lnav {
@@ -308,14 +309,17 @@
   z-index: 100;
   display: flex;
   justify-content: center;
-  padding: 0 var(--sp-16);
+  padding: 0 var(--gutter);
   pointer-events: none;
 }
 :root[data-theme='light'] #lnav-bar {
   position: relative;
   z-index: 2;
   pointer-events: auto;
-  display: flex;
+  width: 100%;
+  max-width: var(--content-w);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: var(--sp-16);
   padding: var(--sp-8) var(--sp-8) var(--sp-8) var(--sp-24);
@@ -327,6 +331,7 @@
   box-shadow: var(--glass-shadow);
 }
 :root[data-theme='light'] .lnav-brand {
+  justify-self: start;
   color: var(--ink);
   text-decoration: none;
   white-space: nowrap;
@@ -362,10 +367,34 @@
   background: rgba(31, 111, 120, 0.14);
   color: #17565d;
 }
+:root[data-theme='light'] .lnav-cluster {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+}
 :root[data-theme='light'] .lnav-toggle {
   border-radius: var(--r-full);
   font-size: 14px;
   line-height: 20px;
+  white-space: nowrap;
+}
+
+/* language switch on the cream glass: the chosen language is filled with ink */
+:root[data-theme='light'] .lang-switch {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(20, 33, 43, 0.2);
+}
+:root[data-theme='light'] .lang-switch button {
+  color: var(--ink-2);
+}
+:root[data-theme='light'] .lang-switch button:hover {
+  background: rgba(20, 33, 43, 0.07);
+  color: var(--ink);
+}
+:root[data-theme='light'] .lang-switch button[aria-pressed='true'] {
+  background: var(--ink);
+  color: #fff;
 }
 
 /* menu button + full height panel (mobile) */
@@ -469,7 +498,8 @@
   color: var(--teal);
 }
 
-@media (max-width: 719px) {
+/* German is longer: below 1000 px the links and the arcade button move into the menu panel */
+@media (max-width: 999px) {
   :root[data-theme='light'] .lnav-links,
   :root[data-theme='light'] .lnav-toggle {
     display: none;
@@ -478,12 +508,12 @@
     display: inline-flex;
   }
   :root[data-theme='light'] #lnav-bar {
-    width: 100%;
+    display: flex;
     justify-content: space-between;
     padding-left: var(--sp-16);
   }
 }
-@media (min-width: 720px) {
+@media (min-width: 1000px) {
   :root[data-theme='light'] #lmenu {
     display: none;
   }

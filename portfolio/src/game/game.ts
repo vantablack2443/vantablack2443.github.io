@@ -1,4 +1,5 @@
 import * as pl from 'planck';
+import { t } from '../i18n';
 import { Lights, LIGHTS_ON_MS, prefersReducedMotion } from '../lights';
 import { inPlungerLane } from '../layout';
 import type { StageMetrics } from '../stage';
@@ -138,6 +139,12 @@ export class Game {
       this.sfx.bumper();
     });
     this.listen(document, 'visibilitychange', () => this.setPaused('hidden', document.hidden));
+    // the labels the game writes itself follow the language (HUD messages and lamp text stay English)
+    this.listen(document, 'langchange', () => {
+      this.syncMuteButton();
+      this.syncStartButton();
+      this.updateHud();
+    });
 
     this.updateHud();
     this.syncStartButton();
@@ -590,8 +597,8 @@ export class Game {
     this.d.lights.setBonusFill(this.mult);
     if (this.elMission) {
       this.elMission.textContent = this.isRunning()
-        ? `Projects ${this.visited.size}/6 · Lanes ${this.litLanes.size}/4`
-        : 'Hit all six project cards, then light all four language lanes.';
+        ? `${t('hud.projects', 'Projects')} ${this.visited.size}/6 · ${t('hud.lanes', 'Lanes')} ${this.litLanes.size}/4`
+        : t('hud.mission', 'Hit all six project cards, then light all four language lanes.');
     }
   }
 
@@ -600,16 +607,19 @@ export class Game {
     const idle = this.state === 'ATTRACT' || this.state === 'GAME_OVER';
     this.btnStart.disabled = !idle;
     const label = this.btnStart.querySelector('span');
-    if (label) label.textContent = idle ? 'Start' : 'Playing';
+    if (label) label.textContent = idle ? t('btn.start', 'Start') : t('btn.playing', 'Playing');
   }
 
   private syncMuteButton(): void {
     if (!this.btnMute) return;
     const on = !this.sfx.muted;
     this.btnMute.setAttribute('aria-pressed', String(on));
-    this.btnMute.setAttribute('aria-label', on ? 'Sound is on. Turn sound off' : 'Sound is off. Turn sound on');
-    const t = this.btnMute.querySelector('.mute-text');
-    if (t) t.textContent = on ? 'Sound on' : 'Sound off';
+    this.btnMute.setAttribute(
+      'aria-label',
+      on ? t('sound.onAria', 'Sound is on. Turn sound off') : t('sound.offAria', 'Sound is off. Turn sound on'),
+    );
+    const text = this.btnMute.querySelector('.mute-text');
+    if (text) text.textContent = on ? t('sound.on', 'Sound on') : t('sound.off', 'Sound off');
   }
 }
 

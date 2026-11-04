@@ -1,3 +1,5 @@
+import { t } from '../i18n';
+
 /**
  * Light-only pieces of the shared CV markup: the Details toggle on each project
  * card and the Programming / Tools chip groups. Everything is derived from the
@@ -6,9 +8,17 @@
 
 const TOOLS = new Set(['Git', 'GitLab', 'Docker']);
 
+/** Labels built here are re-written when the language changes. */
+const relabel: Array<() => void> = [];
+let listening = false;
+
 export function enhanceContent(): void {
   cards();
   skills();
+  if (!listening) {
+    listening = true;
+    document.addEventListener('langchange', () => relabel.forEach((fn) => fn()));
+  }
 }
 
 function cards(): void {
@@ -24,15 +34,19 @@ function cards(): void {
     btn.setAttribute('aria-controls', list.id);
     const name = card.querySelector('.t')?.textContent?.trim() ?? 'project';
     const label = document.createElement('span');
-    label.textContent = 'Details';
     btn.append(label);
-    btn.setAttribute('aria-label', `Details: ${name}`);
-    btn.addEventListener('click', () => {
-      const open = !card.classList.contains('is-open');
-      card.classList.toggle('is-open', open);
+    const sync = (): void => {
+      const open = card.classList.contains('is-open');
+      const text = open ? t('card.hide', 'Hide details') : t('card.details', 'Details');
+      label.textContent = text;
       btn.setAttribute('aria-expanded', String(open));
-      label.textContent = open ? 'Hide details' : 'Details';
-      btn.setAttribute('aria-label', `${open ? 'Hide details' : 'Details'}: ${name}`);
+      btn.setAttribute('aria-label', `${text}: ${name}`);
+    };
+    sync();
+    relabel.push(sync);
+    btn.addEventListener('click', () => {
+      card.classList.toggle('is-open');
+      sync();
     });
     const detail = card.querySelector('.detail');
     card.insertBefore(btn, detail);
@@ -44,7 +58,7 @@ function skills(): void {
   if (!host || host.querySelector('.skill-groups')) return;
   const main = Array.from(host.querySelectorAll('.bumper .lbl')).map((e) => (e.textContent ?? '').trim());
   const also = (document.getElementById('skills-also')?.textContent ?? '')
-    .replace(/^\s*Also:\s*/i, '')
+    .replace(/^[^:]*:\s*/, '') // the label in front ("Also:" / "Außerdem:")
     .split('·')
     .map((s) => s.trim())
     .filter(Boolean);
@@ -53,15 +67,21 @@ function skills(): void {
 
   const groups = document.createElement('div');
   groups.className = 'skill-groups light-only';
-  for (const [title, items] of [
-    ['Programming', programming],
-    ['Tools', tools],
+  const titles = (): Record<'programming' | 'tools', string> => ({
+    programming: t('skills.programming', 'Programming'),
+    tools: t('skills.tools', 'Tools'),
+  });
+  const heads: Array<[HTMLElement, 'programming' | 'tools']> = [];
+  for (const [which, items] of [
+    ['programming', programming],
+    ['tools', tools],
   ] as const) {
     if (!items.length) continue;
     const g = document.createElement('div');
     g.className = 'skill-group';
     const h = document.createElement('h3');
-    h.textContent = title;
+    h.textContent = titles()[which];
+    heads.push([h, which]);
     const ul = document.createElement('ul');
     ul.className = 'chips';
     for (const it of items) {
@@ -72,5 +92,6 @@ function skills(): void {
     g.append(h, ul);
     groups.append(g);
   }
+  relabel.push(() => heads.forEach(([h, which]) => (h.textContent = titles()[which])));
   host.querySelector('h2')?.after(groups);
 }

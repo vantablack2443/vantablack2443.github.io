@@ -1,3 +1,4 @@
+import { applyDom, setLang, t } from './i18n';
 import { Lights, prefersReducedMotion } from './lights';
 import { Modal } from './modal';
 import { buildBoard, buildRails } from './svg-rails';
@@ -6,7 +7,7 @@ import { positionElements, watchScale, metrics, type StageMetrics } from './stag
 import type { Game } from './game/game';
 
 /**
- * Bootstrap: theme, reader/table mode, scaling, and wiring of the game.
+ * Bootstrap: language, theme, reader/table mode, scaling, and wiring of the game.
  *
  * Two themes share one DOM:
  *   dark   the pinball table. The game (and planck) is loaded with a dynamic
@@ -14,20 +15,16 @@ import type { Game } from './game/game';
  *   light  "Backwaters", a scrolling page over a looping video. Its runtime
  *          lives in src/light/ and is dynamically imported the first time light
  *          mode is entered.
- * The head script in index.html picks the first theme before paint; applyTheme /
- * enterDark / enterLight switch at runtime without a reload.
+ * The head script in index.html always starts in light (the arcade is opt in, per
+ * visit) and picks the language before paint; applyTheme / enterDark / enterLight
+ * switch at runtime without a reload, setLang swaps the text the same way.
  */
 
 type Theme = 'light' | 'dark';
 
 const root = document.documentElement;
 const MODE_KEY = 'portfolio-mode';
-const THEME_KEY = 'theme';
 const THEME_COLOR: Record<Theme, string> = { light: '#EAF3FA', dark: '#000000' };
-const TITLE: Record<Theme, string> = {
-  light: 'Dipu Balamurugan | Portfolio',
-  dark: 'Dipu Balamurugan | Portfolio pinball table',
-};
 
 let game: Game | null = null;
 let gameLoading: Promise<void> | null = null;
@@ -53,15 +50,13 @@ function mountEmail(): void {
   const link = $<HTMLAnchorElement>('link-email');
   if (link) {
     link.href = `mailto:${addr}`;
-    link.textContent = 'Email';
-    link.setAttribute('aria-label', 'Email Dipu');
     link.hidden = false;
   }
   document.querySelectorAll<HTMLAnchorElement>('a[data-mailto]').forEach((a) => {
     a.href = `mailto:${addr}`;
-    a.setAttribute('aria-label', 'Email Dipu');
     a.hidden = false;
   });
+  labelEmail();
   const slot = document.querySelector<HTMLElement>('#contact-email .email-slot');
   if (slot) {
     const a = document.createElement('a');
@@ -70,6 +65,25 @@ function mountEmail(): void {
     slot.replaceChildren(a);
     $('contact-email')!.hidden = false;
   }
+}
+
+/** The accessible name of the email links follows the language. */
+function labelEmail(): void {
+  document.querySelectorAll<HTMLElement>('#link-email, a[data-mailto]').forEach((a) => {
+    a.setAttribute('aria-label', t('email.aria', 'Email Dipu'));
+  });
+}
+
+/* ---------------- language ---------------- */
+
+function wireLangSwitches(): void {
+  document.querySelectorAll<HTMLElement>('.lang-switch [data-lang]').forEach((b) => {
+    b.addEventListener('click', () => setLang(b.dataset.lang === 'de' ? 'de' : 'en'));
+  });
+  document.addEventListener('langchange', () => {
+    labelEmail();
+    setMeta(getTheme());
+  });
 }
 
 /* ---------------- modal ---------------- */
@@ -200,7 +214,10 @@ const readerPreferred = (): boolean => {
 function setMeta(theme: Theme): void {
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLOR[theme]);
   document.querySelector('meta[name="color-scheme"]')?.setAttribute('content', theme);
-  document.title = TITLE[theme];
+  document.title =
+    theme === 'light'
+      ? t('title.light', 'Dipu Balamurugan | Portfolio')
+      : t('title.dark', 'Dipu Balamurugan | Portfolio pinball table');
 }
 
 function updateToggles(): void {
@@ -252,20 +269,13 @@ function applyTheme(theme: Theme): void {
 }
 
 function focusAfterSwitch(): void {
-  const sel = getTheme() === 'dark' ? '#btn-theme, #theme-reader' : '.lnav-toggle, #lmenu-btn';
+  const sel = getTheme() === 'dark' ? '#btn-back' : '.lnav-toggle, #lmenu-btn';
   const el = Array.from(document.querySelectorAll<HTMLElement>(sel)).find((e) => e.offsetParent !== null);
   el?.focus({ preventScroll: true });
 }
 
-function setTheme(next: Theme, persist = true, refocus = false): void {
+function setTheme(next: Theme, refocus = false): void {
   if (next === getTheme()) return;
-  if (persist) {
-    try {
-      localStorage.setItem(THEME_KEY, next);
-    } catch {
-      /* ignore */
-    }
-  }
   const after = (): void => {
     // keyboard users keep a place to be; for a mouse click focus is left alone (a lingering focused
     // toggle would turn the next Space press, meant to scroll, into another switch)
@@ -313,20 +323,8 @@ function setTheme(next: Theme, persist = true, refocus = false): void {
 function wireThemeToggles(): void {
   document.querySelectorAll<HTMLElement>('[data-theme-toggle]').forEach((b) => {
     b.addEventListener('click', (e) =>
-      setTheme(b.dataset.target === 'light' ? 'light' : 'dark', true, (e as MouseEvent).detail === 0),
+      setTheme(b.dataset.target === 'light' ? 'light' : 'dark', (e as MouseEvent).detail === 0),
     );
-  });
-  // no saved choice: follow the operating system while the page is open
-  const mq = matchMedia('(prefers-color-scheme: light)');
-  mq.addEventListener('change', () => {
-    let saved: string | null = null;
-    try {
-      saved = localStorage.getItem(THEME_KEY);
-    } catch {
-      /* ignore */
-    }
-    if (saved === 'light' || saved === 'dark') return;
-    setTheme(mq.matches ? 'light' : 'dark', false);
   });
 }
 
@@ -349,7 +347,14 @@ function ensureRailsContainer(): void {
 
 function init(): void {
   if (!root.classList.contains('js')) root.classList.add('js'); // safety net if the inline script was blocked
+  // first thing: the German text goes in before anything else runs, then the guard that hides the body lifts
+  applyDom(document);
+  setMeta(getTheme());
+  root.classList.add('i18n-done');
+  // the switch's first paint already shows the right language: its colour transition only runs from the next click on
+  requestAnimationFrame(() => requestAnimationFrame(() => root.classList.add('i18n-ready')));
   mountEmail();
+  wireLangSwitches();
   ensureRailsContainer();
   wireOpenButtons();
   wireThemeToggles();

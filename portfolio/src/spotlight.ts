@@ -1,3 +1,4 @@
+import { stripI18n, t } from './i18n';
 import { CARD_IDS } from './layout';
 
 /**
@@ -55,6 +56,15 @@ export class Spotlight {
       on('focusin', () => this.show(id));
     }
 
+    // the shown slot is rebuilt from the page text, which has just been translated
+    const onLang = (): void => {
+      window.clearTimeout(this.swapTimer);
+      this.body.classList.remove('out');
+      this.render(this.current ?? 'howto');
+    };
+    document.addEventListener('langchange', onLang);
+    this.disposers.push(() => document.removeEventListener('langchange', onLang));
+
     this.cycleTimer = window.setInterval(() => this.tick(), 1000);
   }
 
@@ -98,16 +108,16 @@ export class Spotlight {
 
   private howTo(): HTMLElement {
     const a = make('article', 'spot');
-    a.append(make('h3', 'title-3', 'How to play'));
+    a.append(make('h3', 'title-3', t('spot.howto', 'How to play')));
     const ul = make('ul', 'spot-list body-6');
-    for (const t of [
-      'Press Start. The first ball launches itself.',
-      'Flip with the arrow keys (or touch the lower half).',
-      'Hit a project card and its full story appears here.',
-      'Light all four language lanes to raise the bonus.',
-      'Rather not play? Tap a card, or choose Read CV.',
+    for (const line of [
+      t('spot.howto.1', 'Press Start. The first ball launches itself.'),
+      t('spot.howto.2', 'Flip with the arrow keys (or touch the lower half).'),
+      t('spot.howto.3', 'Hit a project card and its full story appears here.'),
+      t('spot.howto.4', 'Light all four language lanes to raise the bonus.'),
+      t('spot.howto.5', 'Rather not play? Tap a card, or choose Read CV.'),
     ]) {
-      ul.append(make('li', '', t));
+      ul.append(make('li', '', line));
     }
     a.append(ul);
     return a;
@@ -128,6 +138,7 @@ export class Spotlight {
     if (list) {
       const ul = list.cloneNode(true) as HTMLElement;
       ul.className = 'spot-list body-6';
+      stripI18n(ul);
       a.append(ul);
     }
     const link = src.querySelector<HTMLAnchorElement>('.detail .links a');
@@ -138,7 +149,7 @@ export class Spotlight {
       l.rel = 'noopener';
       l.target = '_blank';
       l.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-github" /></svg>';
-      l.append('View on GitHub');
+      l.append(t('spot.github', 'View on GitHub'));
       a.append(l);
     }
     return a;
