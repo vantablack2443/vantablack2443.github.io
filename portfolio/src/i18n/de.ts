@@ -1,24 +1,20 @@
 /**
  * German copy, keyed by dot names. English stays in index.html (and in the t() calls),
  * so a missing key just shows the English text; tests/i18n.test.ts keeps the two in sync.
- * Left in English on purpose: names (projects, technologies, "HiWi", "B.Sc. Informatik"),
- * the canvas and lamp text, and the game's HUD messages (the game is being replaced).
+ * Left in English on purpose: names (projects, technologies, "HiWi", "B.Sc. Informatik").
  */
 export const DE: Record<string, string> = {
   // page
   'title.light': 'Dipu Balamurugan | Portfolio',
-  'title.dark': 'Dipu Balamurugan | Portfolio Flippertisch',
+  'title.dark': 'Dipu Balamurugan | Laternenfluss',
   'meta.description':
-    'Portfolio von Dipu Balamurugan, B.Sc. Informatik an der Universität des Saarlandes: Projekte, Ausbildung, Kenntnisse und ein spielbarer Flipper.',
+    'Portfolio von Dipu Balamurugan, B.Sc. Informatik an der Universität des Saarlandes: Projekte, Ausbildung, Kenntnisse und ein spielbares Spiel auf einem nächtlichen Fluss.',
 
   // skip link, language switch, theme buttons
   'nav.skip': 'Zum Inhalt springen',
   'lang.group': 'Sprache',
   'cta.back': 'Zur Website',
-  'cta.arcade': 'Arcade spielen',
-  'reader.toTable': 'Flippertisch spielen',
-  'banner.text': 'Am besten auf einem größeren Bildschirm — oder',
-  'banner.read': 'den Lebenslauf lesen',
+  'cta.play': 'Zum Spiel',
 
   // light navigation
   'nav.primary': 'Hauptnavigation',
@@ -30,19 +26,9 @@ export const DE: Record<string, string> = {
   'nav.openMenu': 'Menü öffnen',
   'nav.closeMenu': 'Menü schließen',
 
-  // dark left panel (backglass)
-  'panel.about': 'Über Dipu',
-  'panel.tagline': 'B.Sc. Informatik @ Universität des Saarlandes — Sicherheit · Datennetze · Software Engineering',
-  'panel.place': 'Saarbrücken, Deutschland',
-  'panel.msc': ' · Zusage für den M.Sc. Informatik',
+  // email
   'link.email': 'E-Mail',
   'email.aria': 'E-Mail an Dipu schreiben',
-  'ps.edu.uds': '<strong>B.Sc. Informatik</strong>, Universität des Saarlandes',
-  'ps.edu.dates': 'seit April 2023 · 130+ ECTS · Zusage für den M.Sc.',
-  'ps.edu.kolleg': '<strong>Studienkolleg Jena</strong>, T-Kurs (2,2), April 2022 bis Januar 2023',
-  'ps.exp.role': '<strong>HiWi</strong>, Campus-Bibliothek Informatik + Mathematik',
-  'ps.exp.where': 'Max-Planck-Institut für Informatik · seit April 2024',
-  'ps.exp.what': 'Technischer Support, GIMP-Digitalisierung, Python-Plugins.',
 
   // section headings
   'sec.education': 'Ausbildung',
@@ -78,7 +64,6 @@ export const DE: Record<string, string> = {
   'edu.uds':
     '<strong>B.Sc. Informatik</strong>, Universität des Saarlandes — seit April 2023. Mehr als 130 ECTS, voraussichtlicher Abschluss bis September 2027. Zusage für den M.Sc. Informatik.',
   'edu.kolleg': '<strong>Studienkolleg Jena</strong> (T-Kurs, Note 2,2) — April 2022 bis Januar 2023.',
-  'edu.open': 'Details: Ausbildung',
 
   // experience
   'exp.stack': 'HiWi, Campus-Bibliothek Informatik + Mathematik (Max-Planck-Institut für Informatik)',
@@ -86,7 +71,6 @@ export const DE: Record<string, string> = {
   'exp.2': 'Technischer Support für Bibliotheksnutzer am Infoschalter.',
   'exp.3': 'Digitalisierung von Materialien mit GIMP.',
   'exp.4': 'Python-Skripte und Plugins geschrieben, die den GIMP-Digitalisierungsworkflow automatisieren.',
-  'exp.open': 'Details: Berufserfahrung',
 
   // projects
   'proj.orion.sub': ' — Multi-Agent-KI-Plattform',
@@ -155,36 +139,35 @@ export const DE: Record<string, string> = {
   'contact.title': 'Sprechen wir.',
   'contact.sub': 'Offen für Werkstudentenstellen und Praktika in Deutschland.',
   'contact.emailLabel': 'E-Mail:',
-  'footer.text': '© 2026 Dipu Balamurugan · Gebaut mit Vite und ziemlich viel Flipper-Physik',
+  'footer.text': '© 2026 Dipu Balamurugan · Gebaut mit Vite, PixiJS und ziemlich viel Physik',
   'modal.close': 'Dialog schließen',
 
-  // arcade
-  'table.hint': 'Start drücken oder eine Karte antippen, um mehr zu lesen.',
+  // the game: Lantern River
+  'river.title': 'Laternenfluss',
+  'river.wip': 'Spiel noch in Entwicklung',
+  'river.hint.keys': 'Mit den Pfeiltasten oder WASD paddeln. Laternen anzünden, an einem Steg anlegen und ein Projekt öffnen, und den Krokodilen nicht zu nahe kommen.',
+  'river.hint.touch': 'Zum Paddeln ziehen oder aufs Wasser tippen, um dorthin zu fahren. Laternen anzünden, an einem Steg anlegen und ein Projekt öffnen, und den Krokodilen nicht zu nahe kommen.',
+  'river.credit': 'Wasser in Rust simuliert, zu WebAssembly kompiliert',
   'btn.start': 'Start',
-  'btn.playing': 'Läuft',
-  'btn.readCv': 'CV lesen',
-  'panel.game': 'Spielbereich',
+  'river.error': 'Das Spiel konnte in diesem Browser nicht gestartet werden. Die Website funktioniert auch ohne.',
   'hud.aria': 'Spielstatus',
-  'hud.score': 'Punkte',
-  'hud.high': 'Best',
-  'hud.mission': 'Alle sechs Projektkarten treffen, dann alle vier Sprachbahnen zum Leuchten bringen.',
-  'hud.projects': 'Projekte',
-  'hud.lanes': 'Bahnen',
-  'spot.title': 'Projekt im Fokus',
-  'spot.github': 'Auf GitHub ansehen',
-  'spot.howto': 'So wird gespielt',
-  'spot.howto.1': 'Start drücken. Die erste Kugel startet von selbst.',
-  'spot.howto.2': 'Mit den Pfeiltasten flippern (oder die untere Hälfte berühren).',
-  'spot.howto.3': 'Trifft die Kugel eine Projektkarte, erscheint hier die ganze Geschichte.',
-  'spot.howto.4': 'Alle vier Sprachbahnen aufleuchten lassen, um den Bonus zu erhöhen.',
-  'spot.howto.5': 'Lieber nicht spielen? Eine Karte antippen oder „CV lesen“ wählen.',
-  'ctl.title': 'Steuerung',
-  'ctl.left': 'Linker Flipper',
-  'ctl.right': 'Rechter Flipper',
-  'ctl.space': 'Leertaste',
-  'ctl.pause': 'Pause, Ende',
-  'ctl.touch':
-    'Auf einem Touchscreen die untere linke oder rechte Tischhälfte gedrückt halten; zum Starten den Knopf gedrückt halten.',
+  'river.hud.score': 'Punkte',
+  'river.hud.lanterns': 'Laternen',
+  'river.hud.docks': 'Stege',
+  'river.hud.moon': 'Der Mond ist die Uhr',
+  'river.paused': 'Pause',
+  'river.paused.hint': 'Leertaste drücken, um weiterzumachen.',
+  'river.resume': 'Weiter',
+  'river.over.title': 'Die Nacht ist vorbei',
+  'river.over.clear': 'Klare Nacht',
+  'river.high': 'Bestwert',
+  'river.newHigh': 'Neuer Bestwert',
+  'river.again': 'Nochmal spielen',
+  'river.say.start': 'Die Nacht beginnt. Laternen anzünden und an den Stegen anlegen.',
+  'river.say.lantern': 'Laterne angezündet. {n} von {m}.',
+  'river.say.moor': 'Angelegt bei {name}.',
+  'river.say.bite': 'Ein Krokodil hat das Boot gebissen. Fünfzehn Sekunden verloren.',
+  'river.say.clear': 'Klare Nacht. Alle Stege und Laternen gefunden.',
   'sound.off': 'Ton aus',
   'sound.on': 'Ton an',
   'sound.offAria': 'Ton ist aus. Ton einschalten',

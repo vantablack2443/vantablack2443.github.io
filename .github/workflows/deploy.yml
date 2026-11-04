@@ -31,6 +31,11 @@ jobs:
           cache: npm
           cache-dependency-path: portfolio/package-lock.json
 
+      # the river's water is Rust compiled to WebAssembly: test it, then npm test / npm run build compile it
+      - run: rustup target add wasm32-unknown-unknown
+      - run: cargo test
+        working-directory: portfolio/water-rs
+
       - run: npm ci
       - run: npm test
       - run: npm run build

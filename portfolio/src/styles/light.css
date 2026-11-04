@@ -1,7 +1,7 @@
 /* light.css — the light theme, "Backwaters".
-   Light mode is the SAME DOM as the reader layout (no `.table` class on <html>),
-   restyled as a scrolling page of frosted glass panels over a looping painted
-   video. Everything is scoped to :root[data-theme='light'], so dark is untouched.
+   Light mode is the plain page layout of the CV markup (base.css), restyled as a
+   scrolling page of frosted glass panels over a looping painted video. Everything is
+   scoped to :root[data-theme='light'], so dark is untouched.
 
    Design system: landing-page-design skill, Part B.
      type    Geist + Geist Mono, named styles from the B1 table (defined below, light only)
@@ -34,7 +34,7 @@
   --sg: 96px; /* gap between sections: Spacing-900 on desktop, Spacing-700 on mobile */
   --content-w: 1120px;
 
-  /* legacy tokens read by the shared reader rules in base.css */
+  /* tokens read by the shared page rules in base.css */
   --bg-0: #eaf3fa;
   --bg-1: var(--glass);
   --bg-2: var(--chip-bg);
@@ -126,23 +126,8 @@
   padding: 0;
   overflow-x: clip; /* the hero glow and the parallax layer never widen the page */
 }
-/* the table wrappers are plain blocks here */
-:root[data-theme='light'] #viewport,
-:root[data-theme='light'] #cabinet,
-:root[data-theme='light'] #stage {
-  display: block;
-  position: static;
-  width: auto;
-  height: auto;
-  transform: none;
-  perspective: none;
-}
-
-/* Things that exist for the dark theme only */
-:root[data-theme='light'] #panel-left,
-:root[data-theme='light'] #to-table,
-:root[data-theme='light'] #top-controls,
-:root[data-theme='light'] #small-banner {
+/* Things that exist for the dark theme only (the game) */
+:root[data-theme='light'] .dark-only {
   display: none !important;
 }
 
@@ -298,7 +283,7 @@
 
 /* ------------------------------------------------------------------ */
 /* Floating nav: a bar across the content width. Wordmark left, section */
-/* links in the middle, the cluster (EN | DE, Play the arcade) right.   */
+/* links in the middle, the cluster (EN | DE, Play the game) right.   */
 /* ------------------------------------------------------------------ */
 
 :root[data-theme='light'] #lnav {
@@ -498,7 +483,7 @@
   color: var(--teal);
 }
 
-/* German is longer: below 1000 px the links and the arcade button move into the menu panel */
+/* German is longer: below 1000 px the links and the game button move into the menu panel */
 @media (max-width: 999px) {
   :root[data-theme='light'] .lnav-links,
   :root[data-theme='light'] .lnav-toggle {
@@ -755,7 +740,6 @@
 :root[data-theme='light'] main#content > #skills { order: 4; }
 :root[data-theme='light'] main#content > #languages { order: 5; }
 :root[data-theme='light'] main#content > #contact { order: 6; }
-:root[data-theme='light'] #table-hint { display: none; }
 
 /* section groups sit one section gap apart (the 24 px grid gap is part of it) */
 :root[data-theme='light'] main#content > #sling-right,

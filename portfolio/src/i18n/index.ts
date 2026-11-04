@@ -90,7 +90,7 @@ export function applyDom(scope: ParentNode = document): void {
   syncSwitches();
 }
 
-/** Copies of translated markup (modal, spotlight) are snapshots: they must not be translated again. */
+/** Copies of translated markup (the dock dialog) are snapshots: they must not be translated again. */
 export function stripI18n(scope: Element): void {
   scope.querySelectorAll('[data-i18n], [data-i18n-html], [data-i18n-attr]').forEach((el) => {
     el.removeAttribute('data-i18n');

@@ -1,3 +1,5 @@
 node_modules
 dist
 *.log
+src/river/wasm/
+water-rs/target/

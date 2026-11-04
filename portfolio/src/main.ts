@@ -1,21 +1,19 @@
 import { applyDom, setLang, t } from './i18n';
-import { Lights, prefersReducedMotion } from './lights';
 import { Modal } from './modal';
-import { buildBoard, buildRails } from './svg-rails';
-import { Spotlight } from './spotlight';
-import { positionElements, watchScale, metrics, type StageMetrics } from './stage';
-import type { Game } from './game/game';
+import { prefersReducedMotion } from './motion';
+import type { RiverGame } from './river';
 
 /**
- * Bootstrap: language, theme, reader/table mode, scaling, and wiring of the game.
+ * Bootstrap: language, theme, and wiring of the game.
  *
  * Two themes share one DOM:
- *   dark   the pinball table. The game (and planck) is loaded with a dynamic
- *          import, only when the dark theme is active and table mode is on.
+ *   dark   "Lantern River", the night game. Its runtime (PixiJS and planck) lives in
+ *          src/river/ and is loaded with a dynamic import, only when the dark theme is
+ *          entered. The CV in #content is hidden in dark and is the text of the dock cards.
  *   light  "Backwaters", a scrolling page over a looping video. Its runtime
  *          lives in src/light/ and is dynamically imported the first time light
  *          mode is entered.
- * The head script in index.html always starts in light (the arcade is opt in, per
+ * The head script in index.html always starts in light (the game is opt in, per
  * visit) and picks the language before paint; applyTheme / enterDark / enterLight
  * switch at runtime without a reload, setLang swaps the text the same way.
  */
@@ -23,17 +21,12 @@ import type { Game } from './game/game';
 type Theme = 'light' | 'dark';
 
 const root = document.documentElement;
-const MODE_KEY = 'portfolio-mode';
-const THEME_COLOR: Record<Theme, string> = { light: '#EAF3FA', dark: '#000000' };
+const THEME_COLOR: Record<Theme, string> = { light: '#EAF3FA', dark: '#02040C' };
 
-let game: Game | null = null;
-let gameLoading: Promise<void> | null = null;
-let lights: Lights | null = null;
-let spotlight: Spotlight | null = null;
-let unwatch: (() => void) | null = null;
-let latest: StageMetrics = metrics();
-/** Bumped whenever the table is torn down, so a game import that finishes late knows it is stale. */
-let tableGen = 0;
+let river: RiverGame | null = null;
+let riverLoading: Promise<void> | null = null;
+/** Bumped whenever the game is torn down, so an import that finishes late knows it is stale. */
+let riverGen = 0;
 let lightApi: { enterLight(): void; leaveLight(): void } | null = null;
 let lightLoading: Promise<void> | null = null;
 
@@ -47,11 +40,6 @@ function mountEmail(): void {
   const user = ['dipu', 'balamurugan2k'].join('');
   const host = ['gmail', 'com'].join('.');
   const addr = `${user}@${host}`;
-  const link = $<HTMLAnchorElement>('link-email');
-  if (link) {
-    link.href = `mailto:${addr}`;
-    link.hidden = false;
-  }
   document.querySelectorAll<HTMLAnchorElement>('a[data-mailto]').forEach((a) => {
     a.href = `mailto:${addr}`;
     a.hidden = false;
@@ -69,7 +57,7 @@ function mountEmail(): void {
 
 /** The accessible name of the email links follows the language. */
 function labelEmail(): void {
-  document.querySelectorAll<HTMLElement>('#link-email, a[data-mailto]').forEach((a) => {
+  document.querySelectorAll<HTMLElement>('a[data-mailto]').forEach((a) => {
     a.setAttribute('aria-label', t('email.aria', 'Email Dipu'));
   });
 }
@@ -83,133 +71,70 @@ function wireLangSwitches(): void {
   document.addEventListener('langchange', () => {
     labelEmail();
     setMeta(getTheme());
+    modal.refresh();
   });
 }
 
-/* ---------------- modal ---------------- */
+/* ---------------- modal (the dock card) ---------------- */
 
 const modal = new Modal({
-  onOpen: () => game?.setPaused('modal', true),
-  onClose: () => game?.setPaused('modal', false),
+  // the night clock stops while a card is open; closing it casts off from the dock
+  onOpen: () => river?.setPaused('modal', true),
+  onClose: () => {
+    river?.setPaused('modal', false);
+    river?.castOff();
+  },
 });
 
-function wireOpenButtons(): void {
-  document.querySelectorAll<HTMLElement>('.card, .sling').forEach((obj) => {
-    const btn = obj.querySelector<HTMLButtonElement>('button.open');
-    const open = (): void => {
-      if (!root.classList.contains('table')) return;
-      if (game?.isRunning()) {
-        game.say('TAP CARDS AFTER THE GAME, OR PRESS READ CV', 2600);
+/** The boat moored at a dock: show that project, built from the `.card` markup in #content. */
+function openDock(cardId: string): void {
+  const card = document.getElementById(cardId);
+  if (card) modal.openFor(card);
+}
+
+/* ---------------- game boot ---------------- */
+
+async function bootRiver(): Promise<void> {
+  if (getTheme() !== 'dark' || river || riverLoading) return; // light mode never loads Pixi or planck
+  const host = $('river-host');
+  if (!host) return;
+  const gen = riverGen;
+  riverLoading = import('./river')
+    .then(({ createRiver }) => createRiver({ host, onDock: openDock, isModalOpen: () => modal.isOpen }))
+    .then((game) => {
+      // the visitor may have switched to light while the chunk loaded
+      if (gen !== riverGen || getTheme() !== 'dark') {
+        game.dispose();
         return;
       }
-      modal.openFor(obj, btn ?? undefined);
-    };
-    btn?.addEventListener('click', open);
-  });
-}
-
-/* ---------------- table / reader mode ---------------- */
-
-function setMode(mode: 'table' | 'reader', persist = true): void {
-  if (getTheme() !== 'dark') return; // light mode is always the scrolling page
-  if (persist) {
-    try {
-      localStorage.setItem(MODE_KEY, mode);
-    } catch {
-      /* ignore */
-    }
-  }
-  if (mode === 'reader') {
-    game?.endGame();
-    game?.setPaused('reader', true);
-    lights?.reset();
-    modal.close();
-    root.classList.remove('table');
-    updateBanner();
-    window.scrollTo({ top: 0 });
-    return;
-  }
-  root.classList.add('table');
-  game?.setPaused('reader', false);
-  void bootTable();
-  updateBanner();
-}
-
-function updateBanner(): void {
-  const banner = $('small-banner');
-  if (!banner) return;
-  banner.hidden = !(root.classList.contains('table') && document.documentElement.clientWidth < 380);
-}
-
-/* ---------------- table boot ---------------- */
-
-/** The synchronous part: position the DOM, build the board, start the lights, spotlight and scale watcher. */
-function setupTable(): void {
-  const stage = $('stage')!;
-  if (!lights) {
-    positionElements();
-    buildBoard(document.getElementById('board') as unknown as SVGSVGElement);
-    buildRails(document.getElementById('rails') as unknown as SVGSVGElement);
-    lights = new Lights(stage);
-  }
-  spotlight ??= new Spotlight($('spot-body')!, stage);
-  unwatch ??= watchScale((m) => {
-    latest = m;
-    game?.resize(m);
-    updateBanner();
-  });
-  root.classList.add('ready');
-}
-
-async function bootTable(): Promise<void> {
-  if (!root.classList.contains('table')) return;
-  if (getTheme() !== 'dark') return; // light mode never loads planck
-  setupTable();
-  const stage = $('stage')!;
-
-  if (game) return;
-  const gen = tableGen;
-  gameLoading ??= import('./game/game').then(({ createGame }) => {
-    // the visitor may have switched to light (or reader mode) while the chunk loaded
-    if (gen !== tableGen || game || getTheme() !== 'dark') return;
-    game = createGame({
-      stage,
-      canvas: $('game-canvas') as HTMLCanvasElement,
-      lights: lights!,
-      isModalOpen: () => modal.isOpen,
-      metrics: latest,
-      onCardHit: (id) => spotlight?.hit(id),
+      river = game;
+      $<HTMLButtonElement>('r-start')?.removeAttribute('disabled');
+    })
+    .catch((err) => {
+      // no WebGL, or the chunk failed: say so, and keep the way back to the site
+      console.error('[portfolio] the river game failed to start', err);
+      root.classList.add('river-failed');
+    })
+    .finally(() => {
+      riverLoading = null;
     });
-  });
-  await gameLoading;
+  await riverLoading;
 }
 
-/** Leaving dark: end the game, dispose it (loop, listeners, audio) and release the table's watchers. */
-function teardownTable(): void {
-  tableGen++;
-  gameLoading = null;
+/** Leaving dark: close any card, dispose the game (loop, listeners, audio, canvas). */
+function teardownRiver(): void {
+  riverGen++;
   modal.close();
-  if (game) {
-    game.endGame();
-    game.dispose();
-    game = null;
+  if (river) {
+    river.endGame();
+    river.dispose();
+    river = null;
   }
-  lights?.reset();
-  spotlight?.dispose();
-  spotlight = null;
-  unwatch?.();
-  unwatch = null;
+  $<HTMLButtonElement>('r-start')?.setAttribute('disabled', '');
+  root.classList.remove('river-failed');
 }
 
 /* ---------------- themes ---------------- */
-
-const readerPreferred = (): boolean => {
-  try {
-    return localStorage.getItem(MODE_KEY) === 'reader';
-  } catch {
-    return false;
-  }
-};
 
 function setMeta(theme: Theme): void {
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLOR[theme]);
@@ -217,7 +142,7 @@ function setMeta(theme: Theme): void {
   document.title =
     theme === 'light'
       ? t('title.light', 'Dipu Balamurugan | Portfolio')
-      : t('title.dark', 'Dipu Balamurugan | Portfolio pinball table');
+      : t('title.dark', 'Dipu Balamurugan | Lantern River');
 }
 
 function updateToggles(): void {
@@ -231,16 +156,11 @@ function updateToggles(): void {
 function enterDark(): void {
   lightApi?.leaveLight();
   root.classList.remove('light-failed');
-  if (readerPreferred()) root.classList.remove('table');
-  else root.classList.add('table');
-  updateBanner();
-  void bootTable(); // its synchronous part positions the table before the next paint
+  void bootRiver();
 }
 
 function enterLight(): void {
-  teardownTable();
-  root.classList.remove('table', 'lit', 'flicker');
-  updateBanner();
+  teardownRiver();
   void bootLight();
 }
 
@@ -269,7 +189,7 @@ function applyTheme(theme: Theme): void {
 }
 
 function focusAfterSwitch(): void {
-  const sel = getTheme() === 'dark' ? '#btn-back' : '.lnav-toggle, #lmenu-btn';
+  const sel = getTheme() === 'dark' ? '#r-start:not(:disabled), #btn-back' : '.lnav-toggle, #lmenu-btn';
   const el = Array.from(document.querySelectorAll<HTMLElement>(sel)).find((e) => e.offsetParent !== null);
   el?.focus({ preventScroll: true });
 }
@@ -330,21 +250,6 @@ function wireThemeToggles(): void {
 
 /* ---------------- init ---------------- */
 
-function ensureRailsContainer(): void {
-  // the SVG layers are generated entirely from layout.ts: the PCB under the
-  // objects (#board) and the hardware over them (#rails)
-  const stage = document.getElementById('stage')!;
-  const make = (id: string): void => {
-    if (document.getElementById(id)) return;
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.id = id;
-    stage.append(svg);
-  };
-  make('board');
-  make('rails');
-  stage.insertBefore(document.getElementById('board')!, document.getElementById('content'));
-}
-
 function init(): void {
   if (!root.classList.contains('js')) root.classList.add('js'); // safety net if the inline script was blocked
   // first thing: the German text goes in before anything else runs, then the guard that hides the body lifts
@@ -355,20 +260,11 @@ function init(): void {
   requestAnimationFrame(() => requestAnimationFrame(() => root.classList.add('i18n-ready')));
   mountEmail();
   wireLangSwitches();
-  ensureRailsContainer();
-  wireOpenButtons();
   wireThemeToggles();
   updateToggles();
 
-  $('btn-reader')?.addEventListener('click', () => setMode('reader'));
-  $('banner-read')?.addEventListener('click', () => setMode('reader'));
-  $('to-table')?.addEventListener('click', () => setMode('table'));
-
-  window.addEventListener('resize', updateBanner);
   if (getTheme() === 'light') void bootLight();
-  else void bootTable();
-  updateBanner();
-  window.addEventListener('pagehide', () => unwatch?.());
+  else void bootRiver();
 }
 
 init();

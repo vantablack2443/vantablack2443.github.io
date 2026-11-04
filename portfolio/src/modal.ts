@@ -1,7 +1,7 @@
 import { stripI18n } from './i18n';
 
 /**
- * Accessible dialog for project / education / experience details. Uses the
+ * Accessible dialog for a project's details (the dock card in the game). Uses the
  * native <dialog>: showModal() gives a focus trap, Esc closes it, and focus
  * returns to the opener.
  */
@@ -14,6 +14,7 @@ export class Modal {
   readonly dialog: HTMLDialogElement;
   private readonly body: HTMLElement;
   private opener: HTMLElement | null = null;
+  private source: HTMLElement | null = null;
 
   constructor(hooks: ModalHooks = {}) {
     this.dialog = document.getElementById('modal') as HTMLDialogElement;
@@ -22,6 +23,7 @@ export class Modal {
       hooks.onClose?.();
       this.opener?.focus({ preventScroll: true });
       this.opener = null;
+      this.source = null;
     });
     // click on the backdrop closes
     this.dialog.addEventListener('click', (e) => {
@@ -36,7 +38,7 @@ export class Modal {
     return this.dialog.open;
   }
 
-  /** Fill the dialog from a card / slingshot element's real HTML content. */
+  /** Fill the dialog from a project card's real HTML content (title, stack line, bullets, links). */
   openFor(source: HTMLElement, opener?: HTMLElement): void {
     const title = source.querySelector('h3, h2');
     const titleText = (title?.textContent ?? '').replace(/\s+/g, ' ').trim();
@@ -55,18 +57,20 @@ export class Modal {
       frag.append(p);
     }
     if (detail) frag.append(detail.cloneNode(true));
-    if (source.classList.contains('card')) {
-      const more = document.getElementById('more-projects');
-      if (more) frag.append(more.cloneNode(true));
-    }
     this.body.replaceChildren(frag);
     this.body.querySelectorAll('[id]').forEach((n) => n.removeAttribute('id'));
     stripI18n(this.body); // the dialog shows a snapshot of the page text in the current language
     h.id = 'modal-title';
 
+    this.source = source;
     this.opener = opener ?? (document.activeElement as HTMLElement | null);
     if (!this.dialog.open) this.dialog.showModal();
     this.hooks.onOpen?.();
+  }
+
+  /** The language changed while the dialog is open: rebuild it from the page text in the new language. */
+  refresh(): void {
+    if (this.dialog.open && this.source) this.openFor(this.source, this.opener ?? undefined);
   }
 
   close(): void {

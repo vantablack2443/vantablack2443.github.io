@@ -1,0 +1,470 @@
+/* river.css — the dark theme: "Lantern River", the night game.
+   The canvas (PixiJS) fills the viewport; the DOM over it is the top bar (name, and the
+   language / back to site cluster from base.css), a small HUD, the start card, the pause
+   note and the summary. The CV in #content is hidden here: it is only the text of the dock
+   cards (src/modal.ts clones it into the dialog).
+
+   Design system: landing-page-design skill, Part B. Flat surfaces from the dark palette,
+   spacing and radius tokens from base.css, motion on the base curve (transform and opacity). */
+
+[data-theme='dark'] #app {
+  display: none;
+}
+
+html[data-theme='dark'],
+html[data-theme='dark'] body {
+  height: 100%;
+}
+html[data-theme='dark'] body {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #02040c;
+}
+
+#river {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none; /* only the canvas and the cards take pointers */
+  --amber: #ffb347;
+}
+#river-host {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+#river-host canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------------- top bar: the name (the cluster on the right is #top-controls) ---------------- */
+
+#river-name {
+  position: absolute;
+  top: var(--sp-16);
+  left: var(--sp-16);
+  display: flex;
+  align-items: center;
+  height: 40px;
+  color: var(--fg);
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.6);
+}
+
+/* A note that the game is unfinished: top centre, between the name and the cluster; at the bottom on narrow screens. */
+#river-wip {
+  position: absolute;
+  top: var(--sp-16);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  height: 40px;
+  margin: 0;
+  padding: 0 var(--sp-16);
+  border: 1px solid rgb(255 179 71 / 0.45);
+  border-radius: var(--r-full);
+  background: rgb(0 0 0 / 0.55);
+  color: var(--amber);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@media (max-width: 760px) {
+  #river-wip {
+    top: auto;
+    bottom: var(--sp-16);
+    height: 32px;
+  }
+}
+
+/* ---------------- HUD: score, lanterns, docks, and the moon as a thin timer line ---------------- */
+
+#river-hud {
+  position: absolute;
+  top: 64px; /* under the name */
+  left: var(--sp-16);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-16);
+  padding: var(--sp-8) var(--sp-12) var(--sp-12);
+  overflow: hidden;
+  background: rgb(24 24 24 / 0.86);
+  border: 1px solid var(--bg-4);
+  border-radius: var(--r-12);
+  pointer-events: none;
+}
+.hud-cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 48px;
+}
+.hud-cell .lbl {
+  color: var(--fg-2);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.hud-cell output {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+/* the moon is the timer */
+.hud-moon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  background: var(--bg-3);
+}
+.hud-moon i {
+  display: block;
+  height: 100%;
+  background: var(--amber);
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+.hud-sound {
+  width: 40px;
+  min-height: 40px;
+  padding: 0;
+  pointer-events: auto;
+}
+.hud-sound .ic {
+  width: 20px;
+  height: 20px;
+}
+
+/* the sound toggle shows the icon of the state it is in */
+[data-river-sound] .ic-on {
+  display: none;
+}
+[data-river-sound][aria-pressed='true'] .ic-on {
+  display: block;
+}
+[data-river-sound][aria-pressed='true'] .ic-off {
+  display: none;
+}
+
+/* ---------------- cards: start, pause, summary ---------------- */
+
+.r-card {
+  position: absolute;
+  left: 50%;
+  top: 31%; /* above the water line, so the boat stays in view */
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-16);
+  width: min(26rem, calc(100% - 2 * var(--sp-16)));
+  max-height: calc(100% - var(--sp-96));
+  overflow-y: auto;
+  padding: var(--sp-24);
+  background: var(--bg-1);
+  border: 1px solid var(--bg-4);
+  border-radius: var(--r-24);
+  box-shadow: 0 24px 64px rgb(0 0 0 / 0.55);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-50%, calc(-50% + 16px));
+  transition:
+    opacity var(--t-color) var(--ease),
+    transform var(--t-move) var(--ease),
+    visibility 0s linear var(--t-color);
+}
+#river #river-start,
+#river #river-summary,
+#river #river-pause {
+  text-align: left;
+}
+/* which card shows */
+#river[data-phase='idle'] #river-start,
+#river[data-summary] #river-summary,
+#river[data-paused] #river-pause {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+  transition:
+    opacity var(--t-color) var(--ease),
+    transform var(--t-move) var(--ease),
+    visibility 0s;
+}
+#river .r-card h2 {
+  margin: 0;
+  text-wrap: balance;
+}
+#river .r-card .heading-3 {
+  font-size: 36px;
+  line-height: 40px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  /* the one gradient: on the heading text, left to right */
+  background: linear-gradient(90deg, #ffffff 0%, #9b9b9b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+#river .r-card .title-2 {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+.r-card p {
+  margin: 0;
+  text-wrap: pretty;
+}
+.r-hint {
+  color: var(--fg-2);
+}
+/* keys on a mouse and keyboard device, touch wording where there is no hover */
+.hint-touch {
+  display: none;
+}
+@media (hover: none) {
+  .hint-keys {
+    display: none;
+  }
+  .hint-touch {
+    display: block;
+  }
+}
+.r-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+}
+
+/* the main action: a filled white pill with a warm lantern glow */
+.btn-start {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-8);
+  height: 48px;
+  padding: 0 var(--sp-24);
+  border: 1px solid #fff;
+  border-radius: var(--r-full);
+  background: #fff;
+  color: #000;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 1px rgb(255 179 71 / 0.45),
+    0 8px 32px rgb(255 179 71 / 0.22);
+  transition:
+    background-color var(--t-color) var(--ease),
+    transform var(--t-color) var(--ease),
+    opacity var(--t-color) var(--ease);
+}
+.btn-start .ic {
+  color: #000;
+}
+.btn-start:hover:not(:disabled) {
+  background: #ffe8c2;
+  border-color: #ffe8c2;
+  transform: translateY(-1px);
+}
+.btn-start:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-start:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+html.river-failed .btn-start[id='r-start'] {
+  display: none;
+}
+#r-error {
+  display: none;
+}
+html.river-failed #r-error {
+  display: block;
+}
+
+/* pause note: a small card, the water keeps still behind it */
+#river-pause {
+  align-items: flex-start;
+  width: min(20rem, calc(100% - 2 * var(--sp-16)));
+}
+
+/* summary */
+.r-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-12) var(--sp-16);
+  margin: 0;
+}
+.r-stats > div {
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-12);
+  background: var(--bg-2);
+  border-radius: var(--r-12);
+}
+.r-stats dt {
+  color: var(--fg-2);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+}
+.r-stats dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+.r-new {
+  color: var(--amber);
+  font-weight: 600;
+}
+.r-new[hidden] {
+  display: none;
+}
+
+/* ---------------- narrow screens: the HUD becomes a thin strip under the top bar ---------------- */
+
+@media (max-width: 640px) {
+  #river-hud {
+    right: var(--sp-16);
+    justify-content: space-between;
+    gap: var(--sp-8);
+  }
+  .hud-cell {
+    min-width: 0;
+  }
+  .r-card {
+    top: 46%; /* clear of the HUD strip, above the boat */
+    padding: var(--sp-16);
+    border-radius: var(--r-16);
+  }
+  .r-actions > * {
+    flex: 1 1 auto;
+  }
+}
+
+/* ---------------- reduced motion: cards fade, nothing slides ---------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .r-card,
+  #river[data-phase='idle'] #river-start,
+  #river[data-summary] #river-summary,
+  #river[data-paused] #river-pause {
+    transform: translate(-50%, -50%);
+    transition: opacity 0.2s linear, visibility 0s;
+  }
+  .btn-start {
+    transition: background-color var(--t-color) var(--ease);
+  }
+}
+
+/* no WebGL: only the message and the way back to the site */
+html.river-failed #river-start .r-hint,
+html.river-failed #river-start [data-river-sound] {
+  display: none;
+}
+
+/* ---------------- touch stick, bite flash, credit line, debug badge ---------------- */
+
+/* the virtual stick appears where the finger lands (input.ts moves it) */
+#r-stick {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 128px;
+  height: 128px;
+  margin: -64px 0 0 -64px;
+  border: 1px solid rgb(255 255 255 / 0.28);
+  border-radius: var(--r-full);
+  background: rgb(255 255 255 / 0.06);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--t-color) var(--ease);
+}
+#r-stick[data-on] {
+  opacity: 1;
+}
+#r-stick i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  border-radius: var(--r-full);
+  background: rgb(255 255 255 / 0.32);
+}
+
+/* a crocodile bit the boat: the timer line and the HUD frame flash red for a moment */
+#river-hud.bitten {
+  animation: river-bite 0.9s ease-out;
+}
+#river-hud.bitten .hud-moon i {
+  animation: river-bite-bar 0.9s ease-out;
+}
+@keyframes river-bite {
+  0% {
+    border-color: #ff5a4a;
+    background-color: rgb(120 24 18 / 0.9);
+  }
+  100% {
+    border-color: var(--bg-4);
+    background-color: rgb(24 24 24 / 0.86);
+  }
+}
+@keyframes river-bite-bar {
+  0% {
+    background: #ff5a4a;
+  }
+  100% {
+    background: var(--amber);
+  }
+}
+
+/* the one line saying how the water is made */
+.r-credit {
+  margin: 0;
+}
+
+/* ?debug: which water is running */
+.r-badge {
+  position: absolute;
+  left: var(--sp-16);
+  bottom: var(--sp-16);
+  padding: 2px var(--sp-8);
+  border: 1px solid var(--bg-4);
+  border-radius: var(--r-full);
+  background: rgb(24 24 24 / 0.86);
+  color: var(--fg-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+.r-badge[hidden] {
+  display: none;
+}

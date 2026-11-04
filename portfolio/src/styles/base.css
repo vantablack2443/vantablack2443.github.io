@@ -1,6 +1,8 @@
-/* base.css — design tokens, type, buttons, and the READER layout.
-   Without the `.table` class on <html> (no JS, reader mode, or print) the very
-   same HTML renders as an ordinary single-column page. */
+/* base.css — design tokens, type, buttons, and the plain page layout of the CV markup.
+   The CV in #content renders as an ordinary single column page here (this is what the
+   no JS page looks like). Light mode restyles it in light.css; in dark it is hidden and
+   is only the text of the dock cards in the game. The page rules below start with
+   `html[lang]`: always true, and it keeps their specificity above plain class rules. */
 
 /* Tokens shared by both themes: spacing, radius, motion, fonts. */
 :root {
@@ -314,11 +316,6 @@ html:not(.i18n-ready) .lang-switch button {
 
 /* shared small pieces */
 
-.label {
-  color: var(--fg-3);
-  font-weight: 500;
-}
-
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -336,62 +333,15 @@ html:not(.i18n-ready) .lang-switch button {
   color: var(--fg);
 }
 
-kbd {
-  display: inline-block;
-  min-width: 24px;
-  padding: var(--sp-2) var(--sp-8);
-  background: var(--bg-3);
-  border: 1px solid var(--bg-4);
-  border-radius: var(--r-4);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 16px;
-  text-align: center;
-  color: var(--fg);
-}
-
-/* the name: Heading 2 with the white to grey text gradient */
-#name {
-  background: linear-gradient(180deg, #ffffff 0%, #9b9b9b 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
-
 /* ------------------------------------------------------------------ */
-/* Reader layout (default)                                             */
+/* Plain page layout (the CV markup)                                   */
 /* ------------------------------------------------------------------ */
 
-html:not(.table) body {
+html[lang] body {
   max-width: 46rem;
   margin: 0 auto;
   padding: var(--sp-24) var(--sp-16) var(--sp-64);
 }
-/* room for the fixed top right cluster above the reader bar */
-html[data-theme='dark']:not(.table) body {
-  padding-top: var(--sp-64);
-}
-
-/* things that only exist on the table */
-html:not(.table) .table-only,
-html:not(.table) #playfield,
-html:not(.table) #board,
-html:not(.table) #rails,
-html:not(.table) #game-canvas,
-html:not(.table) #plunger-zone,
-html:not(.table) .tag,
-html:not(.table) .abbr,
-html:not(.table) button.open,
-html:not(.table) #small-banner {
-  display: none !important;
-}
-
-html.table .reader-only,
-html.table #to-table {
-  display: none !important;
-}
-
 html.no-js .js-only {
   display: none !important;
 }
@@ -404,58 +354,11 @@ html.no-js .js-only {
   margin: 0;
 }
 
-html:not(.table) #to-table {
-  display: inline-flex;
-  margin: 0 0 var(--sp-24);
-  padding: var(--sp-8) var(--sp-16);
-  background: #fff;
-  color: #000;
-  border: 1px solid #fff;
-  border-radius: var(--r-8);
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 600;
-  transition:
-    background-color var(--t-color) var(--ease),
-    transform var(--t-color) var(--ease);
-}
-html:not(.table) #to-table:hover {
-  background: #d9d9d9;
-}
-html:not(.table) #to-table:active {
-  transform: scale(0.98);
-}
-
-html:not(.table) #name {
-  margin: 0 0 var(--sp-8);
-}
-@media (max-width: 480px) {
-  #name.heading-2 {
-    font-size: 36px;
-    line-height: 40px;
-  }
-}
-
-html:not(.table) #tagline {
-  margin: 0 0 var(--sp-4);
-}
-html:not(.table) #sub {
-  margin: 0 0 var(--sp-16);
-  color: var(--fg-2);
-}
-html:not(.table) #links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-8);
-  margin: 0 0 var(--sp-16);
-}
-
-html:not(.table) main > section {
+html[lang] main > section {
   margin-top: var(--sp-40);
 }
 
-html:not(.table) h2 {
+html[lang] h2 {
   font-size: 24px;
   line-height: 32px;
   font-weight: 600;
@@ -464,50 +367,50 @@ html:not(.table) h2 {
   margin: 0 0 var(--sp-16);
 }
 
-html:not(.table) h3 {
+html[lang] h3 {
   font-size: 18px;
   line-height: 28px;
   font-weight: 600;
   margin: 0 0 var(--sp-2);
 }
-html:not(.table) h3 .sub {
+html[lang] h3 .sub {
   color: var(--fg-2);
   font-weight: 400;
 }
 
-html:not(.table) .card {
+html[lang] .card {
   background: var(--bg-1);
   border: 1px solid var(--bg-4);
   border-radius: var(--r-12);
   padding: var(--sp-16);
   margin: 0 0 var(--sp-16);
 }
-html:not(.table) .stack {
+html[lang] .stack {
   margin: 0 0 var(--sp-4);
   font-family: var(--font-mono);
   font-size: 12px;
   line-height: 16px;
   color: var(--fg-2);
 }
-html:not(.table) .sum {
+html[lang] .sum {
   margin: 0 0 var(--sp-8);
 }
-html:not(.table) .detail ul {
+html[lang] .detail ul {
   margin: var(--sp-4) 0 var(--sp-8);
   padding-left: var(--sp-24);
 }
-html:not(.table) .detail li {
+html[lang] .detail li {
   margin: var(--sp-4) 0;
 }
-html:not(.table) .detail p {
+html[lang] .detail p {
   margin: var(--sp-4) 0;
 }
-html:not(.table) .links {
+html[lang] .links {
   margin: var(--sp-8) 0 0;
 }
 
-html:not(.table) .bumpers,
-html:not(.table) .lanes {
+html[lang] .bumpers,
+html[lang] .lanes {
   display: flex;
   flex-wrap: wrap;
   gap: var(--sp-8);
@@ -515,8 +418,8 @@ html:not(.table) .lanes {
   padding: 0;
   margin: 0 0 var(--sp-12);
 }
-html:not(.table) .bumper,
-html:not(.table) .lane {
+html[lang] .bumper,
+html[lang] .lane {
   background: var(--bg-2);
   border: 1px solid var(--bg-4);
   border-radius: var(--r-full);
@@ -524,30 +427,29 @@ html:not(.table) .lane {
   font-size: 14px;
   line-height: 20px;
 }
-html:not(.table) .lane .lvl {
+html[lang] .lane .lvl {
   margin-left: var(--sp-8);
   color: var(--fg-2);
   font-family: var(--font-mono);
   font-size: 12px;
 }
-html:not(.table) #skills-also,
-html:not(.table) #table-hint {
+html[lang] #skills-also {
   color: var(--fg-2);
 }
 
-html:not(.table) .more-projects h3 {
+html[lang] .more-projects h3 {
   margin-top: var(--sp-24);
 }
-html:not(.table) .more-projects ul {
+html[lang] .more-projects ul {
   padding-left: var(--sp-24);
 }
 
-html:not(.table) #contact ul {
+html[lang] #contact ul {
   list-style: none;
   padding: 0;
 }
 
-/* The modal is used by the table; styled here so it works in reader mode too. */
+/* The dock dialog of the game (a native <dialog>). */
 dialog#modal {
   width: min(34rem, calc(100vw - 2rem));
   max-height: calc(100vh - 3rem);
