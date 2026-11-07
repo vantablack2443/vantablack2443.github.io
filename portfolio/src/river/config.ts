@@ -107,26 +107,26 @@ export const BOAT = {
   /** Keel: water drag per second along the heading and sideways (the sideways one is high). */
   dragAlong: 1.3,
   dragSide: 4.5,
-  /** Rest draught (m): the hull bottom is this far under the waterline (art: ~0.35). */
-  draught: 0.35,
+  /** Rest draught (m): the hull bottom is this far under the waterline (art: ~0.18 of a 0.66 m hull, so about 75% of it shows). */
+  draught: 0.18,
   vertical: {
     mass: 320,
     gyrPitch: 1.25,
     gyrRoll: 0.65,
-    draught: 0.35,
+    draught: 0.18,
     zeta: 0.5,
     // eight under the centre line (the ends of the hull rise) and two out to the sides
     pts: [
-      [-2.1, 0, 0.18],
+      [-2.1, 0, 0.08],
       [-1.5, 0, 0],
       [-0.9, 0, 0],
       [-0.3, 0, 0],
       [0.3, 0, 0],
       [0.9, 0, 0],
       [1.5, 0, 0],
-      [2.1, 0, 0.18],
-      [0, 0.65, 0.02],
-      [0, -0.65, 0.02],
+      [2.1, 0, 0.08],
+      [0, 0.65, 0.01],
+      [0, -0.65, 0.01],
     ],
     coupleMass: 90,
     dentRadius: 0.6,
@@ -182,6 +182,33 @@ export interface LanternSpec {
 
 export const ROPES: RopeSpec[] = [8, 27, 49, 71, 93, 115].map((x) => ({ x, h: 4.7 }));
 
+/**
+ * The rigging that holds the lanterns (the geometry is in rig.ts, the renderer draws it and a test
+ * checks every lantern hangs from it). Each rope runs between two poles that stand `out` metres
+ * outside the water, one on each bank, and sags in a parabola.
+ */
+export const RIG = {
+  /** How far outside the water (m) the poles and trunks stand: z = -out on the near bank, width + out on the far bank. */
+  out: 0.9,
+  /** Sag of a rope at its middle (m), and how far the pole top stands above where the rope ties on. */
+  sag: 0.4,
+  poleTop: 0.25,
+  poleBase: -0.15,
+  poleWidth: 0.16,
+  /** Trees for the branch lanterns: the trunk's distance from the anchor along the river (m), its height, its lean and its widths at the foot and the tip (m). */
+  trunkDx: 3.6,
+  trunkH: 4.9,
+  trunkLean: 0.35,
+  trunkW: [0.28, 0.09] as const,
+  /** Where the limb leaves the trunk (height, m), how much it arches (m) and its widths at the trunk and at the tip (m). */
+  forkH: 3.2,
+  arch: 0.7,
+  limbW: [0.2, 0.05] as const,
+  /** Bark colour of the trunks, limbs and poles, and the darker one of those on the near bank (in front of the light). */
+  bark: 0x40301f,
+  barkNear: 0x2a2018,
+};
+
 const rope = (r: number, z: number, y: number): LanternSpec => ({ mount: 'rope', rope: r, x: ROPES[r].x, z, y });
 const branch = (side: 'near' | 'far', x: number, z: number, y: number): LanternSpec => ({ mount: side, x, z, y });
 
@@ -204,7 +231,7 @@ export const LANTERN = {
   /** The boat lights a lantern when its hull (a segment of this half length along the heading) passes this close (m). */
   lightDistance: 0.8,
   hullHalf: 1.5,
-  /** Height the branch ties on (m) and how far the bank end of the branch is. */
+  /** Height the branch ties on (m). */
   branchH: 4.1,
   /** The pendulum: damping (1/s), a little breeze (m/s^2) and what a touch does (m/s per m/s of the boat, and a fixed shove). */
   damping: 0.14,
@@ -368,9 +395,9 @@ export const CROC = {
     coupleMass: 140,
     dentRadius: 0.5,
   } as BuoySpec,
-  /** Where the water line sits in the sprite (fraction of its height from the top): surfaced / lunging, and lurking. */
-  lineSurfaced: 0.5,
-  lineLurk: 0.2,
+  /** Where the water line sits in the sprite (fraction of its height from the top): surfaced, stalking and lunging, and lurking (eyes, head and the whole back ridge still show). */
+  lineSurfaced: 0.4,
+  lineLurk: 0.26,
 };
 
 /** Lit lanterns make a safe circle crocodiles steer out of (m). */
@@ -394,18 +421,18 @@ export const SCORE = {
 /**
  * The camera is low and behind the near bank, looking across the river. One projection:
  *   d = z + zCam,  s = f / d,  screenX = cx + (x - camX) s,  screenY = horizonY + (camH - y) s.
- * zCam is chosen so the far bank is 0.45 times the size of the near one: zCam / (width + zCam).
+ * zCam is chosen so the far bank is 0.65 times the size of the near one: zCam / (width + zCam).
  * camH and f are derived from the viewport (camera.ts): f from the pixels per metre mid river,
  * camH so the whole river width takes about `waterFraction` of the viewport height.
  */
 export const VIEW = {
-  zCam: (WORLD.width * 0.45) / 0.55,
+  zCam: (WORLD.width * 0.65) / 0.35,
   /** Pixels per metre mid river: from the viewport height, but no more than the width allows. */
   midPerHeight: 0.078,
   minWidthMid: 11,
   /** Share of the viewport height the river takes on screen, and the range of camera heights (m). */
-  waterFraction: 0.5,
-  camH: { min: 5, max: 10 },
+  waterFraction: 0.46,
+  camH: { min: 6, max: 18 },
   /** Where the near bank edge (z = 0) sits, as a fraction of the screen height from the top. */
   nearEdge: 0.9,
   /** Camera smoothing (1/s) and look ahead (m per m/s of boat speed, capped). */
@@ -417,6 +444,37 @@ export const VIEW = {
   /** Resolution cap. */
   maxDpr: 2,
 };
+
+/**
+ * Where things meet the water (render.ts). Every floating sprite fades out over a short feather
+ * above its water line and continues below it as a faint, tinted, wobbling ghost; a mirrored copy
+ * of it (and of the far bank) hangs under the line; a soft ellipse and a thin foam line mark the
+ * contact. Lengths are metres, scaled to pixels by the depth of the object.
+ */
+export const FX = {
+  /** Feather above the water line (m): about 8 px at mid river. Docks fade their stilts over a longer stretch. */
+  feather: 0.11,
+  dockFeather: 0.3,
+  /** Alpha at the water line on the dry side. */
+  lineAlpha: 0.3,
+  /** The submerged ghost: alpha at the line and at the bottom, how far it is pulled to the water colour (0..1), sideways wobble (m). */
+  ghost: { alpha: 0.2, tail: 0.07, mix: 0.82, wobble: 0.05 },
+  /** The water colour the ghost and the reflections are pulled toward (r, g, b 0..1). */
+  tint: [0.05, 0.17, 0.27] as const,
+  /** Reflection: alpha right under the line, how dark it is, how blue (0..1), sideways wobble (m) and how much of the slope shows in it. */
+  reflect: { alpha: 0.34, dark: 0.8, mix: 0.34, wobble: 0.07, slope: 1.2 },
+  /** The far bank's reflection: how deep it reaches under the far edge (m) and its alpha. */
+  bank: { depth: 2.8, alpha: 0.36 },
+  /** Contact ring and foam line: alpha at rest and the extra at speed (m/s for the full extra). */
+  contact: { ring: 0.1, ringMove: 0.14, foam: 0.12, foamMove: 0.4, speed: 3 },
+  /** Soft band along the far edge of the water: height (m, either side of the edge) and alpha of the mist. */
+  mist: { height: 1.3, alpha: 0.3 },
+  /** Near edge: the water darkens toward the bottom of the screen over this share of the screen height. */
+  nearFade: 0.12,
+};
+
+/** Life in the shallows (render.ts draws it, nothing in the sim touches it): lily pads, reed clumps and low fireflies. */
+export const SHALLOWS = { lilies: 18, reeds: 16, flies: 16 };
 
 /** Colours (the placeholder palette; the art swaps in over it). */
 export const PALETTE = {
@@ -448,26 +506,29 @@ export const PALETTE = {
 export interface SpriteSpec {
   file: string;
   width: number;
+  /** How far the body reaches across the river (m), for its contact ring on the water. */
+  beam?: number;
   anchor: readonly [number, number];
   at: readonly [number, number];
 }
 
 export const SPRITES: Record<'boat' | 'lanternOff' | 'lanternOn' | 'dock' | 'log' | 'hyacinth' | 'croc' | 'moon', SpriteSpec> = {
   /** The hull bottom is the image bottom: it sits one draught under the waterline, and the clip shows that. */
-  boat: { file: 'boat.webp', width: 5, anchor: [0.5, 1], at: [0, -BOAT.draught] },
+  boat: { file: 'boat.webp', width: 5, beam: 2, anchor: [0.5, 1], at: [0, -BOAT.draught] },
   lanternOff: { file: 'lantern-off.webp', width: 0.5, anchor: [0.5, 0.5], at: [0, 0] },
   lanternOn: { file: 'lantern-on.webp', width: 0.5, anchor: [0.5, 0.5], at: [0, 0] },
   /** Anchored at its big mooring post (92% across), so the post of the art is the post of the physics. */
   dock: { file: 'dock.webp', width: 6, anchor: [0.92, 1], at: [0, -0.3] },
-  log: { file: 'log.webp', width: 3, anchor: [0.5, 0.62], at: [0, 0] },
-  hyacinth: { file: 'hyacinth.webp', width: 2, anchor: [0.5, 0.82], at: [0, 0] },
+  /** Logs and rafts ride about half out of the water. */
+  log: { file: 'log.webp', width: 3, beam: 0.9, anchor: [0.5, 0.5], at: [0, 0] },
+  hyacinth: { file: 'hyacinth.webp', width: 2, beam: 1.4, anchor: [0.5, 0.55], at: [0, 0] },
   /** 993 x 315: the anchor's y is the water line fraction, set per frame between lineSurfaced and lineLurk. */
-  croc: { file: 'croc.webp', width: 4, anchor: [0.5, CROC.lineSurfaced], at: [0, 0] },
+  croc: { file: 'croc.webp', width: 4, beam: 1, anchor: [0.5, CROC.lineSurfaced], at: [0, 0] },
   moon: { file: 'moon.webp', width: 3.6, anchor: [0.5, 0.5], at: [0, 0] },
 };
 
-/** Places on the dock art (fractions of the image): the middle of the sign board, the lantern on the sign pole, the top of the post. */
-export const DOCK_ART = { sign: [0.68, 0.17], lamp: [0.714, 0.42], post: [0.92, 0.28] } as const;
+/** Places on the dock art (fractions of the image): the middle of the sign board, the lantern on the sign pole, the top of the post, and where the stilts stand (x). */
+export const DOCK_ART = { sign: [0.68, 0.17], lamp: [0.714, 0.42], post: [0.92, 0.28], stilts: [0.21, 0.32, 0.43, 0.59, 0.65, 0.86, 0.94] } as const;
 
 export interface LayerSpec {
   file: string;

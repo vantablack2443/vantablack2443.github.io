@@ -9,7 +9,9 @@ import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { delimiter } from 'node:path';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { BOAT, CROC, DOCK, DOCKS, LANTERNS, SAFE, SCORE, WATER, WORLD } from '../src/river/config';
+import { Camera } from '../src/river/camera';
+import { BOAT, CROC, DOCK, DOCKS, LANTERNS, RIG, ROPES, SAFE, SCORE, WATER, WORLD } from '../src/river/config';
+import { anchorOf, polesOf, ropePoints, rigPolylines, treeOf, type P3 } from '../src/river/rig';
 import { River, type RiverEvent } from '../src/river/sim';
 import { Water, loadWaterWasm } from '../src/river/water';
 
@@ -176,8 +178,9 @@ describe('boat', () => {
       sim.step();
       const p = pos(sim);
       const draught = sim.water.heightAt(p.x, p.z) - (bb.y - BOAT.draught);
-      expect(draught).toBeGreaterThan(0.2);
-      expect(draught).toBeLessThan(0.5);
+      // the rest draught is 0.18 m: about 75% of the 0.66 m hull stays out of the water
+      expect(draught).toBeGreaterThan(0.08);
+      expect(draught).toBeLessThan(0.3);
     }
   });
 
@@ -368,6 +371,24 @@ describe('docks', () => {
 /* 6. lanterns                                                         */
 /* ------------------------------------------------------------------ */
 
+describe('camera', () => {
+  it('the far bank is 0.65 times the size of the near one, and the whole river fits the viewport on a desktop and on a phone', () => {
+    for (const [w, h] of [
+      [1440, 900],
+      [390, 844],
+    ]) {
+      const cam = new Camera();
+      cam.layout(w, h);
+      expect(cam.scale(WORLD.width) / cam.scale(0)).toBeCloseTo(0.65, 3);
+      expect(cam.nearY).toBeLessThanOrEqual(h);
+      expect(cam.farY).toBeGreaterThan(0);
+      expect(cam.farY).toBeLessThan(cam.nearY);
+      // the ends of the river's width are on screen
+      expect(cam.halfWidthAt(WORLD.width / 2)).toBeGreaterThan(5);
+    }
+  });
+});
+
 describe('lanterns', () => {
   it('lights once when the hull passes within 0.8 m, and scores 100', () => {
     const sim = new River({ seed: 3, floaters: false, crocs: false });
@@ -401,6 +422,61 @@ describe('lanterns', () => {
     run(idle, 6);
     expect(idle.lanternsLit).toBe(0);
     expect(idle.score).toBe(0);
+  });
+
+  it('every lantern hangs from a drawn rope or a branch: its anchor lies on a segment of one', () => {
+    // 3D distance from a point to the polyline's segments
+    const dist = (p: P3, line: P3[]): number => {
+      let best = Infinity;
+      for (let i = 0; i < line.length - 1; i++) {
+        const a = line[i];
+        const b = line[i + 1];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dz = b.z - a.z;
+        const l2 = dx * dx + dy * dy + dz * dz;
+        const t = l2 > 0 ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy + (p.z - a.z) * dz) / l2)) : 0;
+        best = Math.min(best, Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy), p.z - (a.z + t * dz)));
+      }
+      return best;
+    };
+    const lines = rigPolylines();
+    const sim = new River({ seed: 5, floaters: false, crocs: false });
+    LANTERNS.forEach((spec, i) => {
+      const l = sim.lanterns[i];
+      const anchor = { x: l.ax, y: l.ay, z: l.az };
+      expect(Math.min(...lines.map((ln) => dist(anchor, ln)))).toBeLessThan(0.01);
+      // the sim hangs it from the same point the renderer draws the chain from, and it hangs below it
+      expect(anchor).toEqual(anchorOf(spec));
+      expect(l.y).toBeLessThan(l.ay);
+      // a rope lantern is between the poles, a branch lantern is out over the water from its bank, and none dangles beyond its line
+      expect(l.az).toBeGreaterThan(-RIG.out);
+      expect(l.az).toBeLessThan(WORLD.width + RIG.out);
+      if (spec.mount !== 'rope') {
+        const tree = treeOf(spec);
+        expect(tree).not.toBeNull();
+        // the limb starts on the trunk and ends at the anchor
+        const limb = tree?.limb ?? [];
+        const trunk = tree?.trunk ?? [];
+        expect(dist(limb[0], trunk)).toBeLessThan(0.01);
+        expect(limb[limb.length - 1]).toEqual(anchor);
+      }
+    });
+  });
+
+  it('every rope runs between two poles, one on each bank, and its ends sit on the pole tops', () => {
+    for (const r of ROPES) {
+      const pts = ropePoints(r);
+      const [near, far] = polesOf(r);
+      expect(near[0].z).toBeLessThan(0);
+      expect(far[0].z).toBeGreaterThan(WORLD.width);
+      // the rope ties on below the pole top, at the pole
+      expect(pts[0]).toEqual({ x: r.x, y: r.h, z: near[1].z });
+      expect(pts[pts.length - 1]).toEqual({ x: r.x, y: r.h, z: far[1].z });
+      expect(near[1].y).toBeGreaterThan(r.h);
+      // it sags in the middle
+      expect(Math.min(...pts.map((p) => p.y))).toBeCloseTo(r.h - RIG.sag, 2);
+    }
   });
 
   it('a touch makes it swing', () => {

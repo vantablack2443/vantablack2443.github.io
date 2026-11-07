@@ -6,7 +6,7 @@ import { VIEW, WORLD } from './config';
  *
  *   d = z + zCam      s = f / d      screenX = cx + (x - camX) s      screenY = horizonY + (camH - y) s
  *
- * s is pixels per metre at that depth. zCam is fixed so the far bank is 0.45 times the size of the
+ * s is pixels per metre at that depth. zCam is fixed so the far bank is 0.65 times the size of the
  * near one; the viewport sets the rest: f from the pixels per metre mid river (the height of the
  * screen, but no more than the width allows) and camH so the whole river width takes about half
  * of the screen height. Whatever is left above is sky and the far banks.

@@ -9,7 +9,6 @@ import {
   FLOATERS,
   LANTERN,
   LANTERNS,
-  ROPES,
   SAFE,
   SCORE,
   WATER,
@@ -19,6 +18,7 @@ import {
   dockZoneZ,
 } from './config';
 import { Buoy } from './buoy';
+import { anchorOf } from './rig';
 import { Water } from './water';
 
 /**
@@ -316,7 +316,7 @@ export class River {
 
   private buildLanterns(): void {
     LANTERNS.forEach((spec, index) => {
-      const ay = spec.mount === 'rope' ? ROPES[spec.rope ?? 0].h : LANTERN.branchH;
+      const ay = anchorOf(spec).y; // on the rope where it passes, or at the tip of the limb
       const len = ay - spec.y;
       const l: Lantern = {
         index,
@@ -701,7 +701,7 @@ export class River {
           const tl = Math.hypot(tx, tz) || 1;
           wx = (tx / tl) * CROC.stalkSpeed;
           wz = (tz / tl) * CROC.stalkSpeed;
-          line = 0.28; // rising a little
+          line = CROC.lineSurfaced; // up out of the water, eyes and back showing
           if (safe || !armed || dist > CROC.loseRange) c.state = 'lurk';
           else if (this.snoutGap(c, p) < CROC.lungeRange) this.beginLunge(c, p, bp, bv);
           break;

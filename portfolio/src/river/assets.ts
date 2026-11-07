@@ -26,6 +26,11 @@ export interface Art {
   croc: Texture;
   /** Always procedural: a soft glow, and the colour ramp of the water (x: how lit, y: far to near). */
   glow: Texture;
+  /** Always procedural: tufts and stones along the far edge of the water (tiles sideways), a soft band of mist, a reed clump, lily pads seen from above. */
+  shore: Texture;
+  mist: Texture;
+  reeds: Texture;
+  lily: Texture;
   /** A soft ring, for the safe circles and the tap target. */
   ring: Texture;
   ramp: Texture;
@@ -220,6 +225,137 @@ function drawRamp(): HTMLCanvasElement {
     }
   }
   g.putImageData(img, 0, 0);
+  return c;
+}
+
+/**
+ * The shore: reed tufts and stones along the far edge of the water, a strip that tiles sideways
+ * and fades out at the bottom so it dissolves into the water.
+ */
+function drawShore(): HTMLCanvasElement {
+  const W = 1024;
+  const H = 96;
+  const { c, g } = canvas(W, H);
+  const r = rnd(53);
+  const two = Math.PI * 2;
+  // stones, dark with a moonlit rim on top
+  for (let i = 0; i < 34; i++) {
+    const x = r() * W;
+    const y = H * (0.62 + r() * 0.2);
+    const rx = 7 + r() * 13;
+    const ry = rx * (0.4 + r() * 0.2);
+    wrap(W, x, (xx) => {
+      g.fillStyle = 'rgba(120,175,205,0.22)';
+      g.beginPath();
+      g.ellipse(xx, y - 1.5, rx, ry, 0, 0, two);
+      g.fill();
+      g.fillStyle = r() < 0.5 ? '#08182a' : '#0c2236';
+      g.beginPath();
+      g.ellipse(xx, y, rx, ry, 0, 0, two);
+      g.fill();
+    });
+  }
+  // tufts of reed blades, leaning a little
+  for (let i = 0; i < 46; i++) {
+    const x = r() * W;
+    const base = H * (0.72 + r() * 0.16);
+    const blades = 4 + ((r() * 5) | 0);
+    const tall = 18 + r() * 40;
+    wrap(W, x, (xx) => {
+      for (let b = 0; b < blades; b++) {
+        const dx = (b - blades / 2) * (2 + r() * 2);
+        const h = tall * (0.55 + r() * 0.45);
+        const lean = (r() - 0.5) * 16 + dx * 0.6;
+        g.fillStyle = r() < 0.25 ? '#12373a' : '#0a2430';
+        g.beginPath();
+        g.moveTo(xx + dx - 1.6, base);
+        g.quadraticCurveTo(xx + dx + lean * 0.3, base - h * 0.6, xx + dx + lean, base - h);
+        g.quadraticCurveTo(xx + dx + lean * 0.3 + 1.2, base - h * 0.6, xx + dx + 1.6, base);
+        g.closePath();
+        g.fill();
+      }
+    });
+  }
+  // dissolve into the water at the bottom
+  g.globalCompositeOperation = 'destination-out';
+  const fade = g.createLinearGradient(0, H * 0.7, 0, H);
+  fade.addColorStop(0, 'rgba(0,0,0,0)');
+  fade.addColorStop(1, 'rgba(0,0,0,1)');
+  g.fillStyle = fade;
+  g.fillRect(0, H * 0.7, W, H * 0.3);
+  return c;
+}
+
+/** A band that fades to nothing at both edges, white (the sprite tints it): mist and shore glow. */
+function drawMist(): HTMLCanvasElement {
+  const { c, g } = canvas(4, 128);
+  const gr = g.createLinearGradient(0, 0, 0, 128);
+  gr.addColorStop(0, 'rgba(255,255,255,0)');
+  gr.addColorStop(0.5, 'rgba(255,255,255,0.8)');
+  gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr;
+  g.fillRect(0, 0, 4, 128);
+  return c;
+}
+
+/** A clump of reeds standing in the shallows, 1.4 m by 1.5 m, its foot at the bottom edge. */
+function drawReeds(): HTMLCanvasElement {
+  const { c, g } = sheet(1.4, 1.5);
+  const r = rnd(71);
+  for (let i = 0; i < 15; i++) {
+    const x = 0.2 + r() * 1.0;
+    const h = 0.7 + r() * 0.75;
+    const lean = (r() - 0.5) * 0.5;
+    g.strokeStyle = r() < 0.3 ? '#1d4a44' : '#0f2f36';
+    g.lineWidth = 0.035 + r() * 0.02;
+    g.beginPath();
+    g.moveTo(x, 0);
+    g.quadraticCurveTo(x + lean * 0.3, h * 0.6, x + lean, h);
+    g.stroke();
+    if (r() < 0.45) {
+      // a seed head
+      g.fillStyle = '#2a2a24';
+      g.beginPath();
+      g.ellipse(x + lean, h - 0.06, 0.035, 0.11, -lean, 0, Math.PI * 2);
+      g.fill();
+    }
+  }
+  return c;
+}
+
+/** Lily pads seen from above (the renderer flattens them to the river's angle), a pink flower on one. */
+function drawLily(): HTMLCanvasElement {
+  const { c, g } = canvas(256, 256);
+  const pads: Array<[number, number, number, number]> = [
+    [90, 100, 62, 0.5],
+    [168, 150, 52, 2.4],
+    [96, 184, 34, 4.1],
+    [186, 70, 30, 1.2],
+  ];
+  for (const [x, y, rr, notch] of pads) {
+    g.fillStyle = '#134a3a';
+    g.beginPath();
+    g.moveTo(x, y);
+    g.arc(x, y, rr, notch + 0.18, notch + Math.PI * 2 - 0.18);
+    g.closePath();
+    g.fill();
+    g.strokeStyle = 'rgba(120,200,170,0.35)';
+    g.lineWidth = 2;
+    g.beginPath();
+    g.arc(x, y, rr - 1, notch + 0.3, notch + 3.2);
+    g.stroke();
+  }
+  g.fillStyle = '#f0b3cf';
+  for (let k = 0; k < 7; k++) {
+    const a = (k / 7) * Math.PI * 2;
+    g.beginPath();
+    g.ellipse(168 + Math.cos(a) * 12, 150 + Math.sin(a) * 12, 12, 5, a, 0, Math.PI * 2);
+    g.fill();
+  }
+  g.fillStyle = '#f6d98a';
+  g.beginPath();
+  g.arc(168, 150, 5, 0, Math.PI * 2);
+  g.fill();
   return c;
 }
 
@@ -590,7 +726,7 @@ function drawHyacinth(): HTMLCanvasElement {
   return c;
 }
 
-/** A crocodile seen from the side, facing right, swimming: the water line is half way up (config CROC.lineSurfaced). */
+/** A crocodile seen from the side, facing right, swimming: the water line is 40% down (config CROC.lineSurfaced). */
 function drawCroc(): HTMLCanvasElement {
   const { c, g } = sheet(4, 1.27);
   g.fillStyle = '#2b4636';
@@ -722,6 +858,10 @@ async function buildArt(): Promise<Art> {
     hyacinth: pick('hyacinth.webp', drawHyacinth),
     croc: pick('croc.webp', drawCroc),
     glow: tex(drawGlow()),
+    shore: tex(drawShore(), 'x'),
+    mist: tex(drawMist()),
+    reeds: tex(drawReeds()),
+    lily: tex(drawLily()),
     ring: tex(drawRing()),
     ramp: tex(drawRamp()),
     real: [...found.keys()],
