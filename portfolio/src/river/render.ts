@@ -40,7 +40,7 @@ import type { River, RiverEvent } from './sim';
  *   trees  ->  the foreground plants along the bottom edge  ->  labels  ->  additive glow  ->  darkness.
  *
  * Every sprite is side-on art, flipped by the sign of its heading's x and squeezed by
- * max(0.55, |cos yaw|) as it turns across the river. Where it meets the water (Clipped below) the
+ * max(0.8, |cos yaw|) (width only) as it turns across the river. Where it meets the water (Clipped below) the
  * sprite fades out over a few pixels instead of being cut, carries on under the line as a faint
  * tinted ghost, hangs mirrored under it as a reflection, and has a soft ring and a foam line
  * around its contact. The hot loop allocates nothing: meshes and lines write into fixed buffers,
@@ -1043,10 +1043,11 @@ export class Renderer {
     const s = cam.scale(z);
     const cy = Math.cos(yaw);
     const sy = Math.sin(yaw);
-    const fx = Math.max(0.55, Math.abs(cy));
+    const fx = Math.max(0.8, Math.abs(cy));
     const flip = cy < 0;
+    // foreshortening narrows the sprite only; its height stays (a boat turning away gets shorter, not smaller)
     const wPx = spec.width * s * fx;
-    const hPx = (wPx * tex.height) / tex.width;
+    const hPx = (spec.width * s * tex.height) / tex.width;
     const px = cam.sx(x, s);
     const visible = px > -wPx && px < this.W + wPx;
     c.setVisible(visible);
