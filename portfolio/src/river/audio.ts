@@ -69,19 +69,24 @@ export class Sfx {
     o.stop(t + dur + 0.02);
   }
 
-  /** A burst of filtered noise: water. */
-  private splash(dur: number, vol: number, freq: number): void {
-    if (this.muted || !this.ctx || !this.master) return;
-    const ctx = this.ctx;
+  /** White noise, made once (0.6 s). */
+  private noise(ctx: AudioContext): AudioBuffer {
     if (!this.noiseBuf) {
       const n = Math.floor(ctx.sampleRate * 0.6);
       this.noiseBuf = ctx.createBuffer(1, n, ctx.sampleRate);
       const d = this.noiseBuf.getChannelData(0);
       for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
     }
+    return this.noiseBuf;
+  }
+
+  /** A burst of filtered noise: water. */
+  private splash(dur: number, vol: number, freq: number): void {
+    if (this.muted || !this.ctx || !this.master) return;
+    const ctx = this.ctx;
     const t = ctx.currentTime;
     const src = ctx.createBufferSource();
-    src.buffer = this.noiseBuf;
+    src.buffer = this.noise(ctx);
     const f = ctx.createBiquadFilter();
     f.type = 'bandpass';
     f.frequency.setValueAtTime(freq * 1.8, t);
@@ -96,10 +101,38 @@ export class Sfx {
     src.stop(t + dur + 0.05);
   }
 
+  /**
+   * A soft rush of air or water: noise through a low-pass filter that sweeps open and closed,
+   * with a slow fade in (no click, no thump).
+   */
+  private woosh(dur: number, vol: number, lo: number, hi: number, when = 0): void {
+    if (this.muted || !this.ctx || !this.master) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime + when;
+    const peak = t + dur * 0.4;
+    const src = ctx.createBufferSource();
+    src.buffer = this.noise(ctx);
+    src.playbackRate.value = 0.8 + Math.random() * 0.4;
+    const f = ctx.createBiquadFilter();
+    f.type = 'lowpass';
+    f.Q.value = 0.7;
+    f.frequency.setValueAtTime(lo, t);
+    f.frequency.exponentialRampToValueAtTime(hi, peak);
+    f.frequency.exponentialRampToValueAtTime(lo, t + dur);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, peak);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f).connect(g).connect(this.master);
+    src.start(t);
+    src.stop(t + dur + 0.05);
+  }
+
+  /** A paddle stroke: the blade sweeping through the water, then a little trickle off it. */
   stroke(): void {
-    const p = 1 + (Math.random() - 0.5) * 0.25;
-    this.splash(0.28, 0.9, 520 * p);
-    this.tone('sine', 140 * p, 80, 0.12, 0.25);
+    const p = 1 + (Math.random() - 0.5) * 0.2;
+    this.woosh(0.42, 0.55, 260 * p, 1400 * p);
+    this.woosh(0.22, 0.12, 1800 * p, 3200 * p, 0.3);
   }
   lantern(): void {
     const p = 1 + (Math.random() - 0.5) * 0.06;
