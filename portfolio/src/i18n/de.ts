@@ -73,6 +73,17 @@ export const DE: Record<string, string> = {
   'exp.4': 'Python-Skripte und Plugins geschrieben, die den GIMP-Digitalisierungsworkflow automatisieren.',
 
   // projects
+  'proj.rail.sub': ' — Zonenparallele Eisenbahnsimulation',
+  'proj.rail.sum': 'Teamprojekt: eine Eisenbahnsimulation, auf Threads verteilt, ohne Locks und mit derselben Ausgabe wie die sequentielle Referenz.',
+  'proj.rail.1':
+    'Eine Eisenbahnsimulation in Rust mit einem Thread pro Zone parallelisiert, sodass Regionen des Netzes gleichzeitig simuliert werden.',
+  'proj.rail.2':
+    'Threads koordinieren sich nur über Nachrichten in Channels: keine Locks, kein geteilter veränderlicher Zustand; jeder Thread besitzt die Daten seiner Zone.',
+  'proj.rail.3':
+    'Synchronisations- und Shutdown-Protokoll entworfen, sodass die Ergebnisse immer der sequentiellen Version entsprechen; eine KI-gestützte interaktive Visualisierung ergänzt (unten verlinkt).',
+  'proj.rail.live': 'Live-Visualisierung',
+  'proj.rail.link': 'Concurrency Bahn auf GitHub',
+
   'proj.orion.sub': ' — Multi-Agent-KI-Plattform',
   'proj.orion.sum': 'Solo-Hackathon-Projekt: 10 KI-Agenten für Unternehmensabläufe.',
   'proj.orion.1':
@@ -116,15 +127,9 @@ export const DE: Record<string, string> = {
   'proj.edge.3': 'Mit systemnaher Speicherverwaltung und performanceorientiertem C gearbeitet.',
   'proj.edge.link': 'Kantenerkennung auf GitHub',
 
-  'proj.mips.sub': ' — Schere, Stein, Papier in MIPS',
-  'proj.mips.sum': 'Vollständiges interaktives Spiel in Assembler: Zustand, Eingabe, Punktestand.',
-  'proj.mips.1':
-    'Ein interaktives Spiel komplett in MIPS-Assembler implementiert: Spielzustand, Benutzereingabe, Verzweigungslogik und Punktezählung.',
-  'proj.mips.2':
-    'Praxis in Prozessorarchitektur, systemnahem Programmablauf und Debugging auf Assemblerebene gesammelt.',
-  'proj.mips.link': 'Schere, Stein, Papier in MIPS auf GitHub',
 
   'more.title': 'Weitere Projekte',
+  'more.mips': ' — ein interaktives Spiel komplett in MIPS-Assembler: Spielzustand, Eingabe, Verzweigungen und Punktezählung.',
   'more.django':
     ' — Django-ORM-Datenbankoperationen, Anbindung einer externen REST-API, HTML/CSS-Frontend (Kursprojekt).',
   'card.details': 'Details',

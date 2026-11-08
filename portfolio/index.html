@@ -256,6 +256,32 @@
         <section id="projects" aria-labelledby="projects-h">
           <h2 id="projects-h" data-i18n="sec.projects">Projects</h2>
 
+          <article id="card-rail" class="card">
+            <h3><span class="t">Concurrency Bahn</span><span class="sub" data-i18n="proj.rail.sub"> — Zone-parallel railway simulation</span></h3>
+            <p class="stack">Rust · Threads · Message passing</p>
+            <p class="sum" data-i18n="proj.rail.sum">Team project: a railway simulation split across threads, with no locks and the same output as the sequential reference.</p>
+            <div class="detail">
+              <ul>
+                <li data-i18n="proj.rail.1">
+                  Parallelised a railway simulation in Rust with one thread per zone, so regions of the network
+                  run at the same time.
+                </li>
+                <li data-i18n="proj.rail.2">
+                  Threads coordinate only by message passing over channels: no locks, no shared mutable state;
+                  each thread owns its zone's data.
+                </li>
+                <li data-i18n="proj.rail.3">
+                  Designed the synchronisation and shutdown protocol so results always match the sequential
+                  version; added an AI-assisted interactive visualization (linked below).
+                </li>
+              </ul>
+              <p class="links">
+                <a class="live" href="https://vantablack2443.github.io/Concurrent_RailwaySystem/" rel="noopener" data-i18n="proj.rail.live">Live visualization</a>
+                <a href="https://github.com/vantablack2443/Concurrent_RailwaySystem" rel="noopener" aria-label="Concurrency Bahn on GitHub" data-i18n-attr="aria-label:proj.rail.link">GitHub</a>
+              </p>
+            </div>
+          </article>
+
           <article id="card-orion" class="card">
             <h3><span class="t">Orion</span><span class="sub" data-i18n="proj.orion.sub"> — Multi-Agent AI Platform</span></h3>
             <p class="stack">Next.js · TypeScript · Gemini API</p>
@@ -306,6 +332,25 @@
             </div>
           </article>
 
+          <article id="card-pagerank" class="card">
+            <h3><span class="t">PageRank</span><span class="sub" data-i18n="proj.pagerank.sub"> — PageRank in C</span></h3>
+            <p class="stack">C · Graphs</p>
+            <p class="sum" data-i18n="proj.pagerank.sum">Random-surfer PageRank on memory-efficient graphs.</p>
+            <div class="detail">
+              <ul>
+                <li data-i18n="proj.pagerank.1">
+                  Implemented Google's PageRank algorithm from scratch in C to analyse graph-based link
+                  structures.
+                </li>
+                <li data-i18n="proj.pagerank.2">Built graph traversal, iterative rank computation and convergence checks.</li>
+                <li data-i18n="proj.pagerank.3">Focused on memory-efficient data structures for larger graph datasets.</li>
+              </ul>
+              <p class="links">
+                <a href="https://github.com/vantablack2443/C_PageRank" rel="noopener" data-i18n="proj.pagerank.link">PageRank on GitHub</a>
+              </p>
+            </div>
+          </article>
+
           <article id="card-2048" class="card">
             <h3><span class="t">2048 + CPU</span><span class="sub" data-i18n="proj.2048.sub"> — 2048 with a CPU player</span></h3>
             <p class="stack">Java · OOP · TDD</p>
@@ -328,25 +373,6 @@
             </div>
           </article>
 
-          <article id="card-pagerank" class="card">
-            <h3><span class="t">PageRank</span><span class="sub" data-i18n="proj.pagerank.sub"> — PageRank in C</span></h3>
-            <p class="stack">C · Graphs</p>
-            <p class="sum" data-i18n="proj.pagerank.sum">Random-surfer PageRank on memory-efficient graphs.</p>
-            <div class="detail">
-              <ul>
-                <li data-i18n="proj.pagerank.1">
-                  Implemented Google's PageRank algorithm from scratch in C to analyse graph-based link
-                  structures.
-                </li>
-                <li data-i18n="proj.pagerank.2">Built graph traversal, iterative rank computation and convergence checks.</li>
-                <li data-i18n="proj.pagerank.3">Focused on memory-efficient data structures for larger graph datasets.</li>
-              </ul>
-              <p class="links">
-                <a href="https://github.com/vantablack2443/C_PageRank" rel="noopener" data-i18n="proj.pagerank.link">PageRank on GitHub</a>
-              </p>
-            </div>
-          </article>
-
           <article id="card-edge" class="card">
             <h3><span class="t">Edge Detect</span><span class="sub" data-i18n="proj.edge.sub"> — Edge Detection in C</span></h3>
             <p class="stack">C · Image Processing</p>
@@ -365,29 +391,6 @@
             </div>
           </article>
 
-          <article id="card-mips" class="card">
-            <h3><span class="t">MIPS R-P-S</span><span class="sub" data-i18n="proj.mips.sub"> — Rock-Paper-Scissors in MIPS</span></h3>
-            <p class="stack">MIPS Assembly</p>
-            <p class="sum" data-i18n="proj.mips.sum">Full interactive game in assembly: state, input, scoring.</p>
-            <div class="detail">
-              <ul>
-                <li data-i18n="proj.mips.1">
-                  Implemented an interactive game entirely in MIPS assembly: game state, user input,
-                  branching logic and score tracking.
-                </li>
-                <li data-i18n="proj.mips.2">
-                  Gained practice in processor architecture, low-level execution flow and assembly-level
-                  debugging.
-                </li>
-              </ul>
-              <p class="links">
-                <a href="https://github.com/vantablack2443/MIPS---RockPaperScissors" rel="noopener" data-i18n="proj.mips.link"
-                  >Rock-Paper-Scissors in MIPS on GitHub</a
-                >
-              </p>
-            </div>
-          </article>
-
           <div id="more-projects" class="more-projects">
             <h3 data-i18n="more.title">More</h3>
             <ul>
@@ -397,6 +400,10 @@
                   — Django ORM database operations, external REST API integration, HTML/CSS frontend pages
                   (course project).</span
                 >
+              </li>
+              <li>
+                <a href="https://github.com/vantablack2443/MIPS---RockPaperScissors" rel="noopener">Rock-Paper-Scissors in MIPS</a
+                ><span data-i18n="more.mips"> — an interactive game written entirely in MIPS assembly: game state, input, branching and scoring.</span>
               </li>
             </ul>
           </div>

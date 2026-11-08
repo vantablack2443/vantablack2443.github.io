@@ -253,7 +253,7 @@ export interface DockSpec {
   side: 'far' | 'near';
 }
 
-const DOCK_CARDS = ['card-orion', 'card-saardew', 'card-2048', 'card-pagerank', 'card-edge', 'card-mips'];
+const DOCK_CARDS = ['card-rail', 'card-orion', 'card-saardew', 'card-pagerank', 'card-2048', 'card-edge'];
 export const DOCKS: DockSpec[] = DOCK_CARDS.map((card, i) => ({ card, x: 16 + i * 22, side: i % 2 === 0 ? 'far' : 'near' }));
 
 export const DOCK = {
