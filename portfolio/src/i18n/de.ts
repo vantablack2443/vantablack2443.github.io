@@ -50,9 +50,6 @@ export const DE: Record<string, string> = {
   'hero.sub':
     'Ich studiere Informatik in Saarbrücken und entwickle Software vom Prozessor aufwärts, mit Schwerpunkt auf Sicherheit, Datennetzen und Software Engineering.',
   'hero.cta': 'Projekte ansehen',
-  'hero.proof.ects': '130+ ECTS ·',
-  'hero.proof.msc': 'Zusage für den M.Sc. ·',
-  'hero.proof.hiwi': 'HiWi am MPI für Informatik',
   'hero.scroll': 'Scrollen',
   'hero.scrollAria': 'Zu den Projekten scrollen',
   'tagline.aria': 'In einem Satz',
