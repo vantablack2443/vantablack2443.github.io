@@ -468,9 +468,13 @@
 
       <footer id="lfooter" class="light-only">
         <p class="caption-2" data-i18n="footer.text">© 2026 Dipu Balamurugan · Built with Vite, PixiJS and a lot of physics</p>
-        <button class="btn btn-ghost theme-toggle" type="button" data-theme-toggle data-target="dark" aria-pressed="false">
-          <svg class="ic" aria-hidden="true"><use href="#i-game-controller" /></svg><span data-i18n="cta.play">Play the game</span>
-        </button>
+        <div class="footer-actions">
+          <!-- text and state come from light/buddy.ts -->
+          <button id="buddy-toggle" class="btn btn-ghost" type="button" hidden>Hide buddy</button>
+          <button class="btn btn-ghost theme-toggle" type="button" data-theme-toggle data-target="dark" aria-pressed="false">
+            <svg class="ic" aria-hidden="true"><use href="#i-game-controller" /></svg><span data-i18n="cta.play">Play the game</span>
+          </button>
+        </div>
       </footer>
     </div>
 

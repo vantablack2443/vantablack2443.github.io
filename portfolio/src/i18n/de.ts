@@ -141,6 +141,9 @@ export const DE: Record<string, string> = {
   'contact.title': 'Sprechen wir.',
   'contact.sub': 'Offen für Werkstudentenstellen und Praktika in Deutschland.',
   'contact.emailLabel': 'E-Mail:',
+  'buddy.hide': 'Buddy ausblenden',
+  'buddy.show': 'Buddy einblenden',
+  'buddy.label': 'Buddy: mit Enter lässt du ihn hüpfen, mit der Maus kannst du ihn ziehen',
   'footer.text': '© 2026 Dipu Balamurugan · Gebaut mit Vite, PixiJS und ziemlich viel Physik',
   'modal.close': 'Dialog schließen',
 

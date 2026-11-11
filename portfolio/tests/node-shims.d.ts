@@ -16,3 +16,6 @@ declare module 'node:child_process' {
   ): string;
 }
 declare const process: { env: Record<string, string | undefined> };
+declare module 'node:zlib' {
+  export function inflateSync(data: Uint8Array): Uint8Array<ArrayBuffer>;
+}

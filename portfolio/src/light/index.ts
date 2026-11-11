@@ -1,4 +1,5 @@
 import { Background } from './background';
+import { Buddy } from './buddy';
 import { enhanceContent } from './content';
 import { Motes } from './motes';
 import { Nav } from './nav';
@@ -16,6 +17,7 @@ const bg = new Background();
 const motes = new Motes();
 const reveals = new Reveals();
 const nav = new Nav();
+const buddy = new Buddy();
 
 let active = false;
 let motionMql: MediaQueryList | null = null;
@@ -26,6 +28,7 @@ function startAll(): void {
   motes.start();
   reveals.start();
   nav.start();
+  buddy.start();
 }
 
 function stopAll(): void {
@@ -33,6 +36,7 @@ function stopAll(): void {
   motes.stop();
   reveals.stop();
   nav.stop();
+  buddy.stop();
 }
 
 /** Reduced motion toggled while the page is open: rebuild with the new preference. */

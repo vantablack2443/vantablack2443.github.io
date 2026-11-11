@@ -1210,3 +1210,80 @@ html.theme-fading-in body {
     animation: none !important;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Buddy: the pixel-art mascot (light/buddy.ts)                        */
+/* ------------------------------------------------------------------ */
+
+:root[data-theme='light'] .footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-12);
+}
+:root[data-theme='light'] #lbuddy {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 50; /* above the panels, below the nav (100) */
+}
+:root[data-theme='light'] .buddy {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+:root[data-theme='light'] .buddy canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+:root[data-theme='light'] .buddy-shadow {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(20, 33, 43, 0.3);
+  filter: blur(1px);
+  opacity: 0;
+}
+/* A few pixels of dust where he landed or took off. */
+:root[data-theme='light'] .buddy-puff {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 12px;
+  visibility: hidden;
+  image-rendering: pixelated;
+}
+/* The only part that takes the pointer: a transparent button over his body. */
+:root[data-theme='light'] .buddy-hit {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-12);
+  background: transparent;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: pan-x pan-y pinch-zoom; /* a swipe over him still scrolls; the long press switches this off (buddy.ts) */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+:root[data-theme='light'] .buddy-hit.grabbing {
+  cursor: grabbing;
+}
+:root[data-theme='light'] .buddy-hit:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+/* While he is held: no text selection anywhere, and the cursor stays a closed hand. */
+:root[data-theme='light'].buddy-grabbing,
+:root[data-theme='light'].buddy-grabbing * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  cursor: grabbing !important;
+}
+:root[data-theme='light'] .footer-actions [hidden] {
+  display: none;
+}
