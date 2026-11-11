@@ -1,6 +1,8 @@
 import { t } from '../i18n';
 import { BuddySim, PUFF_LIFE, type Anim, type Metrics, type Rect } from './buddy-sim';
 import { reducedMotion } from './frame';
+import sheetUrl from './buddy-art/sheet.png';
+import sheetSmUrl from './buddy-art/sheet-sm.png';
 
 /**
  * The buddy: a pixel-art Dipu who lives on the glass panels of the light page. This
@@ -32,9 +34,14 @@ const DRAG = 4; // px a mouse must move with the button down before he is grabbe
 const SLOP = 10; // px a finger may wander during the long press before it counts as a scroll
 const BUBBLE_TIME = 1.1; // seconds the "!" shows after a grab
 const BOB = 700; // ms per half breath
+const BREATH_TOP = 0.55; // the part of the idle figure (from the top) that rises and falls with the breath
+const SNAP = 2; // degrees: the sway and the tilt are drawn in steps of this
+const EDGE = 60; // px from the top or bottom of the viewport where a carried buddy scrolls the page
+const EDGE_SPEED = 900; // px/s, at the very edge
+const DEBUG = /[?&]buddy-debug\b/.test(location.search);
 
-const ORDER: Anim[] = ['idle', 'walk', 'guard', 'jump', 'fall', 'land', 'hang', 'climb'];
-const PHASED = new Set<Anim>(['walk', 'guard', 'climb', 'hang']); // frames follow distance (or drag speed), not the clock
+const ORDER: Anim[] = ['idle', 'ready', 'walk', 'run', 'jump', 'fall', 'land', 'hang', 'climb'];
+const PHASED = new Set<Anim>(['walk', 'run', 'climb', 'hang']); // frames follow distance (or drag speed): phase is in cycles
 
 // the "!" bubble: # outline, f fill, x mark
 const BUBBLE_ART = ['.#####.', '#fffff#', '#ffxff#', '#ffxff#', '#ffxff#', '#fffff#', '#ffxff#', '#fffff#', '.#####.'];
@@ -56,10 +63,11 @@ interface Clip {
   frames: Frame[];
 }
 interface Manifest {
+  version: number;
   size: [number, number];
   cell: [number, number];
   origin: [number, number];
-  metrics: { body: [number, number]; climbHalf: number; grip: number; hang: number };
+  metrics: { height: number; body: [number, number]; crouch: number; climbHalf: number; grip: number; hang: number };
   animations: Record<Anim, Clip>;
 }
 interface Loaded {
@@ -96,6 +104,9 @@ export class Buddy {
   private px = NaN;
   private py = NaN;
   private hitKind = '';
+  private cx = NaN; // the pointer's last client coordinates, to recompute the page ones when the page scrolls
+  private cy = NaN;
+  private dbg: HTMLCanvasElement | null = null;
   private runId = 0; // bumped on stop so a late sheet load is dropped
   // pointer
   private down: { id: number; x: number; y: number; touch: boolean; timer: number; grabbed: boolean } | null = null;
@@ -157,13 +168,14 @@ export class Buddy {
   private load(name: string): Promise<Loaded> {
     let p = this.sheets.get(name);
     if (!p) {
+      // Vite content-hashes both files (a cached PNG can never meet a newer JSON) and keeps them in the light chunk's lazy load
       p = Promise.all([
-        fetch(`buddy/${name}.json`).then((r) => r.json() as Promise<Manifest>),
+        (name === 'sheet-sm' ? import('./buddy-art/sheet-sm.json') : import('./buddy-art/sheet.json')).then((m) => m.default as unknown as Manifest),
         new Promise<HTMLImageElement>((resolve, reject) => {
           const img = new Image();
           img.onload = () => resolve(img);
           img.onerror = reject;
-          img.src = `buddy/${name}.png`;
+          img.src = name === 'sheet-sm' ? sheetSmUrl : sheetUrl;
         }),
       ]).then(([manifest, img]) => {
         const total: Record<string, number> = {};
@@ -231,13 +243,13 @@ export class Buddy {
     this.started = false;
     this.relabel();
 
-    this.on(hit, 'pointerdown', (e) => this.onDown(e as PointerEvent));
+    this.on(hit, 'pointerdown', (e) => this.onDown(e as PointerEvent), false); // not passive: a mouse press cancels text selection and the drag ghost
     this.on(hit, 'click', (e) => {
       if ((e as MouseEvent).detail === 0) this.sim?.hop(); // Enter or Space; a mouse click is handled with the pointer
     });
     this.on(hit, 'contextmenu', (e) => {
       if (this.down?.touch) e.preventDefault(); // a long press must not open a menu
-    });
+    }, false);
     this.on(hit, 'dragstart', (e) => e.preventDefault());
     this.on(hit, 'touchmove', (e) => {
       if (this.down?.grabbed && e.cancelable) e.preventDefault(); // once grabbed, a drag moves him and does not scroll
@@ -247,8 +259,12 @@ export class Buddy {
     this.on(window, 'pointercancel', (e) => this.onUp(e as PointerEvent));
     this.on(document, 'selectstart', (e) => {
       if (this.down?.grabbed) e.preventDefault();
+    }, false);
+    this.on(window, 'resize', () => {
+      this.viewport();
+      this.scheduleLayout();
     });
-    this.on(window, 'resize', () => this.scheduleLayout());
+    this.on(window, 'scroll', () => this.onScroll());
     this.on(document, 'visibilitychange', () => this.sync());
     // the light page's reveals end with a transitionend: a panel may have settled
     this.on(document, 'transitionend', (e) => {
@@ -265,6 +281,8 @@ export class Buddy {
       { rootMargin: '100% 0px 100% 0px' },
     );
     this.io.observe(box);
+    if (DEBUG) this.debugOn();
+    this.viewport();
     this.layout();
   }
 
@@ -287,6 +305,9 @@ export class Buddy {
     this.pageStops.forEach((s) => s());
     this.pageStops = [];
     this.layer?.remove();
+    this.dbg?.remove();
+    this.dbg = null;
+    if (DEBUG) delete (window as unknown as { __buddy?: unknown }).__buddy;
     this.layer = this.box = this.shadow = this.hit = this.canvas = this.ctx = null;
     this.puffs = [];
     this.sim = null;
@@ -295,6 +316,7 @@ export class Buddy {
     this.inView = false;
     this.key = -1;
     this.px = this.py = NaN;
+    this.cx = this.cy = NaN;
     this.hitKind = '';
     this.relabel();
   }
@@ -305,12 +327,13 @@ export class Buddy {
     const m = this.cur!.manifest;
     const a = m.animations;
     return {
-      hw: m.metrics.body[0] - 2,
+      hw: m.metrics.body[0],
       bh: m.metrics.body[1],
+      crouch: m.metrics.crouch,
       climbHalf: m.metrics.climbHalf,
       grip: m.metrics.grip,
       hang: m.metrics.hang,
-      stride: { walk: a.walk.stride ?? 46, guard: a.guard.stride ?? 40, climb: a.climb.stride ?? 34 },
+      stride: { walk: a.walk.stride ?? 68, run: a.run.stride ?? 88, climb: a.climb.stride ?? 34 },
     };
   }
 
@@ -414,25 +437,18 @@ export class Buddy {
     if (!sim) return;
     const dt = (now - this.last) / 1000;
     this.last = now;
+    this.edgeScroll(dt);
     sim.update(dt);
     this.paint(false);
     this.raf = requestAnimationFrame(this.frame);
   };
 
-  /** The frame to show: by walked distance for the cycles, by the clock for the rest. */
-  private frameIndex(clip: Clip, name: Anim, sim: BuddySim, total: number): number {
+  /** The frame to show: by walked distance (phase, in cycles) for the cycles, by the sim for jump and fall, frame 0 for the single poses. */
+  private frameIndex(clip: Clip, name: Anim, sim: BuddySim): number {
     const n = clip.frames.length;
-    // the sim counts six frames per stride; a cycle with fewer frames spreads them over the same stride
-    if (PHASED.has(name)) return Math.floor((sim.phase * n) / 6) % n;
-    if (sim.still && name === 'idle') return 0; // reduced motion: the stance, only the breathing bob
-    let ms = sim.animTime * 1000;
-    if (clip.loop) ms %= total;
-    let i = 0;
-    while (i < n - 1 && ms >= clip.ms[i]) {
-      ms -= clip.ms[i];
-      i++;
-    }
-    return i;
+    if (PHASED.has(name)) return Math.floor(sim.phase * n) % n;
+    if (name === 'jump' || name === 'fall') return Math.min(n - 1, Math.max(0, sim.frame));
+    return 0;
   }
 
   /** Move the box to the buddy and repaint the canvas only when the picture changes. */
@@ -445,10 +461,15 @@ export class Buddy {
     const m = cur.manifest;
     const name = sim.anim;
     const clip = m.animations[name];
-    const i = this.frameIndex(clip, name, sim, cur.total[name]);
+    const i = this.frameIndex(clip, name, sim);
     const flip = sim.face === -1 ? 1 : 0;
     const bubble = sim.held && sim.bubbleT < BUBBLE_TIME ? 1 : 0;
-    const key = ((ORDER.indexOf(name) * 8 + i) * 2 + flip) * 2 + bubble;
+    // the sprite turns about his hands while held (sway) and about his middle in the air after a release (tilt)
+    const turn = sim.held ? sim.sway : sim.tilt;
+    const deg = Math.round(((turn * 180) / Math.PI) / SNAP) * SNAP;
+    // breathing: while he stands at ease the upper body sits one pixel lower for half of every breath; the feet stay put
+    const breath = name === 'idle' && Math.floor((sim.animTime * 1000) / BOB) % 2 === 1 ? 1 : 0;
+    const key = ((((ORDER.indexOf(name) * 8 + i) * 2 + flip) * 2 + bubble) * 2 + breath) * 400 + (deg + 200);
     if (force || key !== this.key) {
       this.key = key;
       const f = clip.frames[i];
@@ -456,15 +477,26 @@ export class Buddy {
       const [ox, oy] = m.origin;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, cw, ch);
-      if (flip) ctx.setTransform(-1, 0, 0, 1, cw, 0); // the anchor sits on the centre line, so a flip keeps it put
-      ctx.drawImage(cur.img, f.x, f.y, f.w, f.h, ox - f.ax, oy - f.ay, f.w, f.h);
+      if (deg !== 0) {
+        const py = sim.held ? oy : oy - m.metrics.body[1] / 2;
+        const r = (deg * Math.PI) / 180;
+        ctx.setTransform(Math.cos(r), Math.sin(r), -Math.sin(r), Math.cos(r), ox - Math.cos(r) * ox + Math.sin(r) * py, py - Math.sin(r) * ox - Math.cos(r) * py);
+      }
+      if (flip) ctx.transform(-1, 0, 0, 1, 2 * ox, 0); // the anchor sits on the centre line, so a flip keeps it put
+      const dx = ox - f.ax;
+      const dy = oy - f.ay;
+      if (breath) {
+        const cut = Math.round(f.h * BREATH_TOP);
+        ctx.drawImage(cur.img, f.x, f.y + cut, f.w, f.h - cut, dx, dy + cut, f.w, f.h - cut);
+        ctx.drawImage(cur.img, f.x, f.y, f.w, cut, dx, dy + 1, f.w, cut);
+      } else {
+        ctx.drawImage(cur.img, f.x, f.y, f.w, f.h, dx, dy, f.w, f.h);
+      }
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       if (bubble) this.drawBubble(ctx, ox + 7, oy - 16);
     }
-    // the breathing bob: one pixel up for half of every breath, only while he stands at ease
-    const bob = name === 'idle' && Math.floor((sim.animTime * 1000) / BOB) % 2 === 1 ? -1 : 0;
     const x = Math.round(sim.x - m.origin[0]);
-    const y = Math.round(sim.y - m.origin[1]) + bob;
+    const y = Math.round(sim.y - m.origin[1]);
     if (x !== this.px || y !== this.py) {
       this.px = x;
       this.py = y;
@@ -473,6 +505,7 @@ export class Buddy {
     this.hitBox(clip.anchor);
     this.shadow!.style.opacity = sim.platform >= 0 && sim.anim !== 'land' ? '1' : sim.platform >= 0 ? '0.6' : '0';
     this.drawPuffs(sim);
+    if (this.dbg) this.debugDraw();
   }
 
   /** The button covers his body only: standing (above the anchor) or hanging (below it). */
@@ -532,6 +565,139 @@ export class Buddy {
     }
   }
 
+
+  // ----------------------------------------------------------------- debug
+
+  /** ?buddy-debug: an overlay with the planner's map, and window.__buddy to drive him from the console or a test. */
+  private debugOn(): void {
+    const c = document.createElement('canvas');
+    c.setAttribute('aria-hidden', 'true');
+    c.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:60';
+    document.body.append(c);
+    this.dbg = c;
+    const self = this;
+    Object.assign(window, {
+      __buddy: {
+        get sim() {
+          return self.sim;
+        },
+        get plan() {
+          return self.sim?.planner ?? null;
+        },
+        teleport: (plat: number, x: number) => self.sim?.place(plat, x),
+        goTo: (plat: number, x: number) => self.sim?.goTo(plat, x),
+        state: () => {
+          const s = self.sim;
+          return s && { x: s.x, y: s.y, mode: s.mode, anim: s.anim, platform: s.platform, face: s.face, held: s.held, sway: s.sway, tilt: s.tilt, phase: s.phase, frame: s.frame };
+        },
+      },
+    });
+  }
+
+  private debugDraw(): void {
+    const c = this.dbg;
+    const sim = this.sim;
+    if (!c || !sim) return;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    if (c.width !== w || c.height !== h) {
+      c.width = w;
+      c.height = h;
+    }
+    const g = c.getContext('2d')!;
+    const sx = window.scrollX;
+    const sy = window.scrollY;
+    g.setTransform(1, 0, 0, 1, -sx, -sy);
+    g.clearRect(sx, sy, w, h);
+    const plan = sim.planner;
+    const P = plan.plats;
+    g.lineWidth = 1;
+    // panels, and the standable stretch of each top
+    for (let i = 1; i < P.length; i++) {
+      g.strokeStyle = 'rgba(40,110,220,0.6)';
+      g.strokeRect(P[i].x + 0.5, P[i].y + 0.5, P[i].w, P[i].h);
+      if (plan.usable(i)) {
+        g.strokeStyle = '#1aa34a';
+        g.lineWidth = 3;
+        g.beginPath();
+        g.moveTo(plan.lo[i], P[i].y - 2);
+        g.lineTo(plan.hi[i], P[i].y - 2);
+        g.stroke();
+        g.lineWidth = 1;
+      }
+    }
+    // holds: the panel side (orange) and the climb line where his body is (magenta)
+    for (const hd of plan.holds) {
+      g.strokeStyle = '#e8870e';
+      g.beginPath();
+      g.moveTo(hd.wall + 0.5, hd.top);
+      g.lineTo(hd.wall + 0.5, hd.bot);
+      g.stroke();
+      g.strokeStyle = '#c21fb0';
+      g.beginPath();
+      g.moveTo(hd.xc + 0.5, hd.ytop);
+      g.lineTo(hd.xc + 0.5, hd.U);
+      g.stroke();
+    }
+    // edges: faint by kind, the route bold, catch points as dots
+    const colour: Record<string, string> = { jump: '#2b7de9', drop: '#888', grab: '#d4351c', descend: '#8a4fd8' };
+    const arrow = (e: { kind: string; from: number; to: number; x: number; arrX: number }, bold: boolean): void => {
+      const x0 = e.x;
+      const y0 = (e.from === 0 ? P[0].y : P[e.from].y) - 6;
+      const x1 = e.arrX;
+      const y1 = (e.to === 0 ? P[0].y : P[e.to].y) - 6;
+      g.strokeStyle = colour[e.kind] ?? '#000';
+      g.globalAlpha = bold ? 1 : 0.28;
+      g.lineWidth = bold ? 3 : 1;
+      g.beginPath();
+      g.moveTo(x0, y0);
+      g.lineTo(x1, y1);
+      g.stroke();
+      g.globalAlpha = 1;
+      g.lineWidth = 1;
+    };
+    for (const list of plan.edges) for (const e of list) arrow(e, false);
+    for (const e of sim.route) {
+      arrow(e, true);
+      if (e.kind === 'grab' && e.path.length) {
+        const hd = plan.holds[e.path[0]];
+        g.fillStyle = '#d4351c';
+        g.beginPath();
+        g.arc(hd.xc, hd.ytop, 4, 0, Math.PI * 2);
+        g.fill();
+      }
+    }
+    // the target: the platform the cursor asks for, and the cursor itself
+    if (!Number.isNaN(this.cx)) {
+      const px = this.cx + sx;
+      const py = this.cy + sy;
+      const t = sim.targetFor(px, py);
+      if (t >= 0 && t < P.length) {
+        g.strokeStyle = '#e0b000';
+        g.lineWidth = 3;
+        g.strokeRect(P[t].x + 1.5, P[t].y + 1.5, P[t].w - 2, Math.min(P[t].h, 40));
+        g.lineWidth = 1;
+      }
+      g.strokeStyle = '#e0b000';
+      g.beginPath();
+      g.moveTo(px - 8, py);
+      g.lineTo(px + 8, py);
+      g.moveTo(px, py - 8);
+      g.lineTo(px, py + 8);
+      g.stroke();
+    }
+    // him: the collision box, and the state in the corner
+    g.strokeStyle = '#d4351c';
+    g.strokeRect(sim.x - sim.hw + 0.5, sim.y - sim.bh + 0.5, 2 * sim.hw, sim.bh);
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    const line = `${sim.mode} ${sim.anim} plat ${sim.platform} x ${sim.x.toFixed(0)} y ${sim.y.toFixed(0)} face ${sim.face} sway ${sim.sway.toFixed(2)} route ${sim.route.map((e) => e.kind).join('>') || '-'}`;
+    g.font = '12px monospace';
+    g.fillStyle = 'rgba(255,255,255,0.85)';
+    g.fillRect(4, 4, g.measureText(line).width + 8, 18);
+    g.fillStyle = '#111';
+    g.fillText(line, 8, 17);
+  }
+
   // --------------------------------------------------------------- pointer
 
   private onDown(e: PointerEvent): void {
@@ -540,10 +706,12 @@ export class Buddy {
     const touch = e.pointerType !== 'mouse';
     const d = { id: e.pointerId, x: e.clientX, y: e.clientY, touch, timer: 0, grabbed: false };
     this.down = d;
+    this.cx = e.clientX;
+    this.cy = e.clientY;
     if (touch) {
       // a long press grabs him; until then a swipe scrolls as it always does
       d.timer = window.setTimeout(() => {
-        if (this.down === d) this.grab(e.pageX, e.pageY, d);
+        if (this.down === d) this.grab(this.cx + window.scrollX, this.cy + window.scrollY, d);
       }, LONG_PRESS);
     } else {
       e.preventDefault(); // no text selection, no drag ghost
@@ -562,14 +730,59 @@ export class Buddy {
     if (d && e.pointerId === d.id) {
       if (!d.grabbed) {
         const far = Math.hypot(e.clientX - d.x, e.clientY - d.y);
+        this.cx = e.clientX;
+        this.cy = e.clientY;
         if (!d.touch && far > DRAG) this.grab(e.pageX, e.pageY, d);
         else if (d.touch && far > SLOP) this.endPress();
       } else {
+        this.cx = e.clientX;
+        this.cy = e.clientY;
         sim.drag(e.pageX, e.pageY);
         return;
       }
     }
-    if (e.pointerType !== 'touch') sim.pointer(e.pageX, e.pageY);
+    if (e.pointerType !== 'touch') {
+      this.cx = e.clientX;
+      this.cy = e.clientY;
+      sim.pointer(e.pageX, e.pageY);
+    }
+  }
+
+  /** The page scrolled under a still pointer: its page coordinates change, but it has not moved (and a held buddy follows it). */
+  private onScroll(): void {
+    const sim = this.sim;
+    if (!sim) return;
+    this.viewport();
+    if (!Number.isNaN(this.cx)) {
+      const px = this.cx + window.scrollX;
+      const py = this.cy + window.scrollY;
+      if (this.down?.grabbed) sim.drag(px, py);
+      else sim.pointer(px, py, false);
+    }
+    if (this.dbg) this.debugDraw();
+  }
+
+  /** Tell the sim which part of the page is on screen. */
+  private viewport(): void {
+    this.sim?.viewport(window.scrollY, window.scrollY + window.innerHeight);
+  }
+
+  /** Carrying him near the top or bottom of the screen scrolls the page, faster the nearer the edge, so he can be dropped anywhere. */
+  private edgeScroll(dt: number): void {
+    const sim = this.sim;
+    if (!sim || !this.down?.grabbed || Number.isNaN(this.cy)) return;
+    const h = window.innerHeight;
+    const up = this.cy < EDGE;
+    const downward = this.cy > h - EDGE;
+    if (!up && !downward) return;
+    const near = up ? Math.max(0, this.cy) : Math.max(0, h - this.cy);
+    const v = EDGE_SPEED * Math.min(1, 1 - near / EDGE + 0.15);
+    const before = window.scrollY;
+    const max = Math.max(0, document.documentElement.scrollHeight - h);
+    const top = Math.min(max, Math.max(0, before + (up ? -v : v) * Math.min(dt, 0.05)));
+    if (top === before) return;
+    window.scrollTo({ top, left: window.scrollX, behavior: 'instant' });
+    this.onScroll(); // the pointer is still, the page moved: he stays under it
   }
 
   private onUp(e: PointerEvent): void {

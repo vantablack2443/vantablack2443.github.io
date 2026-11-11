@@ -2,21 +2,23 @@
 
     python3 scripts/buddy_sheet.py [preview.png]
 
-Reads  art/buddy/v2/{stance,walk,fight-walk,jump,hang,climb}.webp  (flat magenta, facing right)
-Writes public/buddy/sheet.png + sheet.json       (standing height 80 px: the 1x sheet)
-       public/buddy/sheet-sm.png + sheet-sm.json (64 px, the same art for narrow viewports, drawn from the originals, not resampled)
-An optional argument also saves a 4x nearest-neighbour preview of the 1x sheet.
+Reads  art/buddy/v2/{walk4,run,jump,hang,climb,stance}.webp  (flat magenta, facing right)
+Writes src/light/buddy-art/sheet.png + sheet.json       (standing height 80 px: the 1x sheet)
+       src/light/buddy-art/sheet-sm.png + sheet-sm.json (64 px, the same art for narrow viewports, drawn from the originals, not resampled)
+An optional argument also saves a 4x nearest-neighbour preview of the 1x sheet with the anchors marked.
+The manifest is version 3 (see BUDDY3.md, section 3).
 
 How it works
   1. art_key.key() cuts the magenta; the alpha is thresholded to 0/255.
-  2. Every strip is split into frames by connected components of the alpha, left to right.
-     Tiny islands (a stray pixel, a glasses glint) join the nearest frame. Where Gemini let neighbouring
-     frames touch (walk, fight-walk), the merged blob is cut along a seam: a path through the alpha that
-     prefers transparent pixels (dynamic programming), so no frame is cut along a straight line through an arm.
+  2. Every strip is split into frames by connected components of the alpha, left to right. Tiny islands (a
+     stray pixel, a glasses glint) join the nearest frame. Nothing is ever cut along a seam: if a strip does
+     not yield exactly the expected number of separate figures the script stops with an error. A crop guard
+     then checks that no frame has a straight vertical run of opaque pixels along its left or right edge
+     (the signature of a cut-off limb).
   3. One scale for the whole cast: the head (the widest run of dark hair pixels in the top 35% of a frame,
-     median per strip) is the same size in every animation, and the head size is chosen so that the
-     walking figure is exactly HEIGHT px tall. Two exceptions: the climb strip (a back view has a narrower head)
-     is capped at 1.2x the walk scale, and the stance (bent knees) averages head-scale and height-scale.
+     median per strip) is the same size in every animation, and the head size is chosen so that the walking
+     figure (walk4) is exactly HEIGHT px tall. The only exception: the climb strip (a back view has a narrower
+     head) is capped at 1.2x the walk scale.
   4. Frames are box-downscaled (area average, premultiplied), the alpha is snapped to 0/255, and all colours are
      quantised to one shared palette (at most 48 colours) built from every strip together.
   5. Anchors: ground (bottom centre between the feet: the head's centre column, the lowest pixel row), hand (top
@@ -37,9 +39,9 @@ import art_key  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 ART = ROOT / 'art' / 'buddy' / 'v2'
-OUT = ROOT / 'public' / 'buddy'
+OUT = ROOT / 'src' / 'light' / 'buddy-art'
 
-STRIPS = [('stance', 1), ('walk', 6), ('fight-walk', 6), ('jump', 6), ('hang', 6), ('climb', 6)]
+STRIPS = [('walk4', 4), ('run', 4), ('jump', 6), ('hang', 6), ('climb', 6), ('stance', 1)]
 HEIGHTS = {'': 80, '-sm': 64}  # sheet suffix -> standing height in px
 COLOURS = 48
 ALPHA_CUT = 160  # the keyed alpha above this is the figure
@@ -48,21 +50,25 @@ DARK = 48  # luma below this is hair or outline
 HEAD_ROWS = 0.35  # the head is measured in the top 35% of a frame
 CLIMB_CAP = 1.2  # the climb strip is drawn at most this much bigger than the walk strip
 CELL_UP = 16  # room above the anchor for the "!" bubble
-BUBBLE = 16
+CROP_FRAC = 0.2  # a straight vertical run of opaque pixels longer than this share of the frame height, in its first or last column, is a cut limb (the plan said 12 px; real elbows and boots reach 59 px at full resolution, a cut limb is far longer)
+HW_FRAC = 0.175  # the collision half width is this much of the sprite height (14 px at 80)
+BODY_FRAC = 0.9  # the collision body is this much of the sprite height
 
-# animation -> (strip, frame indices, ms per frame, loop, anchor kind)
-# animation -> (sources, ms per frame, loop, anchor kind); the jump strip is crouch, launch, apex, tucked, landing, crouch
+# animation -> (sources: [(strip, frame indices)], ms per frame, loop, anchor kind)
+# The jump strip is: crouch, launch, apex (arms up), tucked, legs down, deep crouch.
 ANIMS = {
-    'idle': ([('stance', [0]), ('fight-walk', 'quiet')], [900, 240, 240, 240], True, 'ground'),
-    'walk': ([('walk', [0, 1, 2, 3, 4, 5])], [130] * 6, True, 'ground'),
-    'guard': ([('fight-walk', 'clean')], 130, True, 'ground'),
+    'idle': ([('jump', [4])], [1000], True, 'ground'),
+    'ready': ([('stance', [0])], [1000], True, 'ground'),
+    'walk': ([('walk4', [0, 1, 2, 3])], [130] * 4, True, 'ground'),
+    'run': ([('run', [0, 1, 2, 3])], [90] * 4, True, 'ground'),
     'jump': ([('jump', [0, 1, 2])], [120, 130, 200], False, 'ground'),
-    'fall': ([('jump', [3])], [200], False, 'ground'),
-    'land': ([('jump', [4, 5])], [90, 120], False, 'ground'),
+    'fall': ([('jump', [3, 4])], [200, 200], False, 'ground'),
+    'land': ([('jump', [5])], [140], False, 'ground'),
     'hang': ([('hang', [0, 1, 2, 3, 4, 5])], [110] * 6, True, 'hand'),
     'climb': ([('climb', [0, 1, 2, 3, 4, 5])], [150] * 6, True, 'ground'),
 }
-STRIDE = {'walk': 46, 'guard': 40, 'climb': 34}  # px of travel per full cycle of the legs (the sim advances the cycle by distance)
+WALK_STRIDE = 38  # px of travel per walk cycle at 80 px (measured: the planted foot moves back ~9 px a frame)
+CLIMB_STRIDE = 34  # px of travel per climb cycle at 80 px (walk and run strides are measured from the frames)
 
 
 # ------------------------------------------------------------------ splitting
@@ -95,68 +101,34 @@ def label(mask):
     return ids, comps
 
 
-def seam(mask, xn, y0, y1, half=45):
-    """A top-to-bottom path near column xn that crosses as few opaque pixels as possible (and stays smooth)."""
-    px = mask.load()
-    w = mask.width
-    xs = range(max(1, xn - half), min(w - 2, xn + half) + 1)
-    pull = 0.04
-
-    def cost(x, y):
-        return (10.0 if px[x, y] else 0.0) + pull * abs(x - xn)
-
-    row = {x: cost(x, y0) for x in xs}
-    back = []
-    for y in range(y0 + 1, y1 + 1):
-        new, bk = {}, {}
-        for x in xs:
-            best, bx = 1e18, x
-            for dx in (-2, -1, 0, 1, 2):
-                c = row.get(x + dx)
-                if c is not None and c + 0.6 * abs(dx) < best:
-                    best, bx = c + 0.6 * abs(dx), x + dx
-            new[x] = best + cost(x, y)
-            bk[x] = bx
-        row = new
-        back.append(bk)
-    x = min(row, key=row.get)
-    path = [x]
-    for bk in reversed(back):
-        x = bk[x]
-        path.append(x)
-    path.reverse()
-    return path  # path[y - y0] is the seam column in row y: pixels right of it belong to the next frame
-
-
-STRAY_GAP = 3  # px: a piece further than this from the body is not part of the frame
-
-
-def drop_strays(m):
-    """Keep the body (the largest piece) and what sits right next to it. A seam cut through touching
-    frames can leave the neighbour's fist behind as a detached piece; this removes it."""
-    ids, comps = label(m)
-    if len(comps) < 2:
-        return m
-    body = max(range(len(comps)), key=lambda i: comps[i][0])
-    _, bx0, by0, bx1, by1 = comps[body]
-    keep = {body + 1}
-    for i, (_, x0, y0, x1, y1) in enumerate(comps):
-        if max(bx0 - x1, x0 - bx1, by0 - y1, y0 - by1) <= STRAY_GAP:
-            keep.add(i + 1)
-    out = bytes(255 if c in keep else 0 for c in ids)
-    return Image.frombytes('L', m.size, out)
+def vertical_run(m, x):
+    """Longest straight run of opaque pixels in column x of a binary mask."""
+    px = m.load()
+    best = cur = 0
+    for y in range(m.height):
+        if px[x, y]:
+            cur += 1
+            best = max(best, cur)
+        else:
+            cur = 0
+    return best
 
 
 def split(name, expect):
-    """The frames of a strip, left to right: a list of (full-resolution RGBA crop, mask crop)."""
+    """The frames of a strip, left to right: full-resolution RGBA crops. Fails if the figures are not separate."""
     keyed = art_key.key(Image.open(ART / f'{name}.webp'))
     mask = keyed.getchannel('A').point(lambda v: 255 if v > ALPHA_CUT else 0)
     w, h = mask.size
     ids, comps = label(mask)
     big = [i + 1 for i, c in enumerate(comps) if c[0] >= ISLAND]
-    owner = {i + 1: i + 1 for i in range(len(comps))}  # component -> the frame it belongs to
+    if len(big) != expect:
+        raise SystemExit(f'{name}: figures touch; regenerate with a clear magenta gap between them (found {len(big)} separate figures, expected {expect})')
+    big.sort(key=lambda j: comps[j - 1][1])  # left to right
+    slot = {c: k for k, c in enumerate(big)}
+    owner = {}
     for i, c in enumerate(comps):  # islands join the nearest frame
         if c[0] >= ISLAND:
+            owner[i + 1] = i + 1
             continue
 
         def gap(j):
@@ -164,42 +136,18 @@ def split(name, expect):
             return math.hypot(max(b[1] - c[3], c[1] - b[3], 0), max(b[2] - c[4], c[2] - b[4], 0))
 
         owner[i + 1] = min(big, key=gap)
-    frame_of = [0] * (w * h)  # frame number + 1 per pixel, 0 for none
-    slots = {c: k for k, c in enumerate(sorted(big, key=lambda j: comps[j - 1][1]))}
-    nf = len(big)
-    cuts = {}  # frame slot -> (x0, y0, [seam paths]) when a merged blob must be cut
-    if nf < expect:
-        # the widest blob holds several touching frames: cut it with seams at equal spacing
-        widest = max(big, key=lambda j: comps[j - 1][3] - comps[j - 1][1])
-        k = expect - nf + 1
-        a, x0, y0, x1, y1 = comps[widest - 1]
-        paths = [seam(mask, round(x0 + (x1 - x0 + 1) * i / k), y0, y1) for i in range(1, k)]
-        cuts[widest] = (y0, paths)
-    assert nf + (len(next(iter(cuts.values()))[1]) if cuts else 0) == expect, f'{name}: found {nf} blobs, need {expect}'
-    # numbering: blobs left to right, the cut blob expands into its pieces
-    order = []
-    for c in sorted(big, key=lambda j: comps[j - 1][1]):
-        order.extend([(c, p) for p in range(len(cuts[c][1]) + 1)] if c in cuts else [(c, 0)])
-    piece_no = {key: n + 1 for n, key in enumerate(order)}
-    for y in range(h):
-        for x in range(w):
-            c = ids[y * w + x]
-            if not c:
-                continue
-            c = owner[c]
-            if c in cuts:
-                y0, paths = cuts[c]
-                p = sum(1 for s in paths if x > s[min(len(s) - 1, y - y0)])
-                frame_of[y * w + x] = piece_no[(c, p)]
-            else:
-                frame_of[y * w + x] = piece_no[(c, 0)]
-    flat = bytes(frame_of)
+    frame_of = bytes(slot[owner[c]] + 1 if c else 0 for c in ids)
     frames = []
-    for n in range(1, len(order) + 1):
-        m = drop_strays(Image.frombytes('L', (w, h), flat).point(lambda v, n=n: 255 if v == n else 0))
+    for n in range(1, expect + 1):
+        m = Image.frombytes('L', (w, h), frame_of).point(lambda v, n=n: 255 if v == n else 0)
         box = m.getbbox()
+        mc = m.crop(box)
+        for col in (0, mc.width - 1):
+            run = vertical_run(mc, col)
+            if run > CROP_FRAC * mc.height:
+                raise SystemExit(f'{name}: frame {n - 1} has a straight vertical run of {run} opaque pixels in column {col}: a limb is cut off')
         rgba = keyed.crop(box)
-        rgba.putalpha(m.crop(box))
+        rgba.putalpha(mc)
         frames.append(rgba)
     return frames
 
@@ -302,19 +250,17 @@ def build_all():
 
     # the head: median of the per-frame hair widths of each strip
     head = {name: statistics.median(head_width(f) for f in frs) for name, frs in sources.items()}
-    walk_h = statistics.median(f.height for f in sources['walk'])
+    walk_h = statistics.median(f.height for f in sources['walk4'])
     print('head widths', head, 'walk height', walk_h)
     return sources, head, walk_h
 
 
 def frame_set(sources, head, walk_h, height, palette):
     """Render every needed source frame at the given standing height. Returns {(strip, index): record}."""
-    head_target = head['walk'] * height / walk_h  # px
+    head_target = head['walk4'] * height / walk_h  # px
     scale = {name: head_target / head[name] for name in head}
     # a back view shows a narrower head than a side view, so the climb would come out too big: cap it
-    scale['climb'] = min(scale['climb'], scale['walk'] * CLIMB_CAP)
-    # the stance is a different drawing with bent knees: split the difference between "same head" and "same height"
-    scale['stance'] = (scale['stance'] + scale['walk'] * walk_h / sources['stance'][0].height) / 2
+    scale['climb'] = min(scale['climb'], scale['walk4'] * CLIMB_CAP)
     print('scale per strip', {k: round(v, 4) for k, v in scale.items()})
     out = {}
     for name, frs in sources.items():
@@ -385,117 +331,114 @@ def apply_palette(img, palette):
     return out
 
 
-STRAY_SKIN = 11  # skin pixels on the left of a guard frame above this: the neighbour's fist overlaps it
-
-
-_clean = None  # decided once on the biggest sheet, then reused, so both sheets show the same frames
-
-
-def clean_guard(frames):
-    """The fight-walk frames without the neighbouring frame's fist drawn over the back shoulder. In the
-    strip Gemini overlapped each raised fist onto the next figure, so those frames can't be cut cleanly."""
-    global _clean
-    if _clean is not None:
-        return _clean
-    keep = []
-    for i in range(6):
-        img = frames[('fight-walk', i)]['img']
-        w, h = img.size
-        px = img.load()
-        skin = sum(1 for y in range(int(h * 0.25), int(h * 0.6)) for x in range(int(w * 0.3)) if is_skin(px[x, y]))
-        if skin <= STRAY_SKIN:
-            keep.append(i)
-    assert len(keep) >= 2, f'only {len(keep)} clean guard frames'
-    _clean = keep
-    return keep
-
-
-def pick_idle(frames):
-    """The two clean fight-walk frames with the legs closest together (the quietest guard poses)."""
-    spread = []
-    for i in clean_guard(frames):
-        img = frames[('fight-walk', i)]['img']
-        w, h = img.size
-        px = img.load()
-        xs = [x for y in range(int(h * 0.85), h) for x in range(w) if px[x, y][3]]
-        spread.append((max(xs) - min(xs), i))
-    return [i for _, i in sorted(spread)[:2]]
+def foot_spread(rec):
+    """Width of the feet: the x extent of the opaque pixels in the bottom 15% of a frame."""
+    img = rec['img']
+    w, h = img.size
+    px = img.load()
+    xs = [x for y in range(int(h * 0.85), h) for x in range(w) if px[x, y][3]]
+    return max(xs) - min(xs) + 1
 
 
 def pack(frames, palette, height, suffix):
-    """Lay the animations out in rows; write the sheet and its manifest."""
-    anims = {}
-    placed = []  # (animation, list of records)
-    idle_pick = pick_idle(frames)
+    """Lay the animations out in rows; write the sheet and its manifest. Returns (sheet, manifest, anchors for the preview)."""
+    placed = []  # (animation, records, ms, loop, kind)
     for name, (parts, ms, loop, kind) in ANIMS.items():
-        recs = []
-        for strip, idx in parts:
-            if idx == 'quiet':
-                idx = [idle_pick[0], idle_pick[1], idle_pick[0]]
-            elif idx == 'clean':
-                idx = clean_guard(frames)
-            recs += [frames[(strip, i)] for i in idx]
-        placed.append((name, recs, ms if isinstance(ms, list) else [ms] * len(recs), loop, kind))
-    # the cell: wide and tall enough for every frame around its anchor
-    half = max(max(r['anchor'][0], r['img'].width - r['anchor'][0]) for _, rs, *_ in placed for r in rs)
-    up = max(r['anchor'][1] for _, rs, *_ in placed for r in rs)
-    down = max(r['img'].height - r['anchor'][1] for _, rs, *_ in placed for r in rs)
-    cell = (2 * math.ceil(half) + 2, math.ceil(up) + CELL_UP + math.ceil(down) + 1)
-    origin = (math.ceil(half) + 1, math.ceil(up) + CELL_UP)
+        recs = [frames[(strip, i)] for strip, idx in parts for i in idx]
+        assert len(ms) == len(recs), name
+        placed.append((name, recs, ms, loop, kind))
+    # the cell: square, the origin in the centre. Big enough for every frame around its anchor, and for the held
+    # sprite swinging about its hands (hang + 20 each way).
+    half = max(
+        max(max(r['anchor'][0], r['img'].width - r['anchor'][0]) for _, rs, *_ in placed for r in rs),
+        max(r['anchor'][1] + CELL_UP for _, rs, *_ in placed for r in rs),
+        max(r['img'].height - r['anchor'][1] for _, rs, *_ in placed for r in rs),
+        round(statistics.median(r['img'].height - r['anchor'][1] for r in frames_of(frames, 'hang'))) + 20,
+    )
+    s = 2 * math.ceil(half) + 2
 
     sheet_w = max(sum(r['img'].width + 1 for r in rs) for _, rs, *_ in placed)
-    y = 0
     rows = []
+    y = 0
     for name, rs, ms, loop, kind in placed:
         rows.append((y, max(r['img'].height for r in rs)))
         y += rows[-1][1] + 1
     sheet = Image.new('RGBA', (sheet_w, y))
+    anims = {}
+    marks = []  # (x, y, kind) in sheet pixels
     for (name, rs, ms, loop, kind), (ry, rh) in zip(placed, rows):
         x = 0
         fl = []
         for r in rs:
             sheet.paste(apply_palette(r['img'], palette), (x, ry))
             f = {'x': x, 'y': ry, 'w': r['img'].width, 'h': r['img'].height, 'ax': round(r['anchor'][0], 1), 'ay': round(r['anchor'][1], 1)}
+            marks.append((x + f['ax'], ry + f['ay'], 'anchor'))
             if r['grip']:
                 f['gx'], f['gy'] = round(r['grip'][0], 1), round(r['grip'][1], 1)
+                marks.append((x + f['gx'], ry + f['gy'], 'grip'))
             fl.append(f)
             x += r['img'].width + 1
         a = {'loop': loop, 'ms': ms, 'anchor': kind, 'frames': fl}
-        if name in STRIDE:
-            a['stride'] = round(STRIDE[name] * height / 80)
         anims[name] = a
 
+    # strides: px travelled per full cycle, twice the widest foot spread of the cycle (the sim advances the cycle by distance)
+    anims['run']['stride'] = round(2 * max(foot_spread(frames[('run', i)]) for i in range(4)))
+    # the walk: twice the foot spread is far too long (the shoes' full extent); the planted foot travels back about 9 px
+    # per frame at 80 px (measured in the browser), so a cycle covers 4 x 9 and the feet do not skate
+    anims['walk']['stride'] = round(WALK_STRIDE * height / 80)
+    anims['climb']['stride'] = round(CLIMB_STRIDE * height / 80)
+
     # metrics the sim needs, measured from the frames
-    walk = [frames[('walk', i)]['img'] for i in range(6)]
-    climb = [frames[('climb', i)] for i in range(6)]
-    hang = [frames[('hang', i)] for i in range(6)]
+    idle = frames[('jump', 4)]['img']
+    climb = frames_of(frames, 'climb')
+    hang = frames_of(frames, 'hang')
     metrics = {
         'height': height,
-        'body': [round(statistics.median(i.width for i in walk) / 2), round(statistics.median(i.height for i in walk))],  # half width, height
+        # collision half width: the torso and legs, not the arms (the whole idle frame is 22 px at 80 and breaks the planner);
+        # 0.175 of the height keeps a 24 px gap between panels too narrow to fall through. Collision height as a share of the sprite.
+        'body': [min(round(HW_FRAC * height), round(idle.width / 2)), round(BODY_FRAC * height)],
+        'crouch': frames[('jump', 5)]['img'].height,
         'climbHalf': max(max(r['anchor'][0], r['img'].width - r['anchor'][0]) for r in climb),
         'grip': round(statistics.median(r['anchor'][1] - r['grip'][1] for r in climb)),  # height of the higher hand above the feet
         'hang': round(statistics.median(r['img'].height - r['anchor'][1] for r in hang)),  # feet below the joined hands
     }
-    manifest = {'size': list(sheet.size), 'cell': list(cell), 'origin': list(origin), 'palette': len(palette), 'metrics': metrics, 'animations': anims}
+    manifest = {'version': 3, 'size': list(sheet.size), 'cell': [s, s], 'origin': [s // 2, s // 2], 'palette': len(palette), 'metrics': metrics, 'animations': anims}
     OUT.mkdir(parents=True, exist_ok=True)
     sheet.save(OUT / f'sheet{suffix}.png', optimize=False)
     (OUT / f'sheet{suffix}.json').write_text(json.dumps(manifest, indent=1) + '\n')
-    return sheet, manifest
+    return sheet, manifest, marks
+
+
+def frames_of(frames, strip):
+    return [r for (n, _), r in sorted(frames.items()) if n == strip]
 
 
 def main():
     sources, head, walk_h = build_all()
     frames = {h: {k: tight(v) for k, v in frame_set(sources, head, walk_h, h, None).items()} for h in HEIGHTS.values()}
     palette = build_palette(list(frames.values()))
+    assert len(palette) <= COLOURS, f'{len(palette)} colours'
     print('palette', len(palette), 'colours')
     for suffix, h in HEIGHTS.items():
-        sheet, m = pack(frames[h], palette, h, suffix)
+        sheet, m, marks = pack(frames[h], palette, h, suffix)
+        a = sheet.getchannel('A')
+        assert set(a.getdata()) <= {0, 255}, 'alpha must be 0 or 255'
         print(f'sheet{suffix}.png', sheet.size, 'cell', m['cell'], 'metrics', m['metrics'])
-        print({k: len(a['frames']) for k, a in m['animations'].items()})
+        print({k: len(a['frames']) for k, a in m['animations'].items()}, {k: a.get('stride') for k, a in m['animations'].items() if 'stride' in a})
         if suffix == '' and len(sys.argv) > 1:
+            k = 4
             bg = Image.new('RGBA', sheet.size, (214, 226, 230, 255))
             bg.alpha_composite(sheet)
-            bg.resize((sheet.width * 4, sheet.height * 4), Image.NEAREST).save(sys.argv[1])
+            big = bg.resize((sheet.width * k, sheet.height * k), Image.NEAREST)
+            px = big.load()
+            for mx, my, kind in marks:
+                col = (255, 0, 0, 255) if kind == 'anchor' else (0, 160, 0, 255)
+                cx, cy = int(mx * k), int(my * k)
+                for d in range(-6, 7):
+                    for (xx, yy) in ((cx + d, cy), (cx, cy + d)):
+                        if 0 <= xx < big.width and 0 <= yy < big.height:
+                            px[xx, yy] = col
+            big.save(sys.argv[1])
 
 
 if __name__ == '__main__':
